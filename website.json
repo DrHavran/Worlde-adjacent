@@ -1,0 +1,25 @@
+{
+  "Normal games": [
+    { "Wordle": { "url": "https://nytimes.com/games/wordle/index.html", "thumb": "https://www.nytimes.com/games-assets/v2/assets/wordle/wordle_og_1200x630.png" } },
+    { "Travle": { "url": "https://travle.earth", "thumb": "https://travle.earth/images/previews/countries_preview.png" } },
+    { "Globle": { "url": "https://globle-game.com/game", "thumb": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRBogbnNKOwYODwR7OS6YSt7s6limFjTUlh13jvAX63tnFBsJ5uNc1mGNdy&s=10" } },
+    { "Worldle": { "url": "https://worldle.teuteuf.fr", "thumb": "https://worldle.teuteuf.fr/og-image.jpg" } },
+    { "Krillion": { "url": "https://krillion.io", "thumb": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS6DafcWj-Yu_pCkPzP7I62LB5A99FHuQSiIFjTWE9TktGIs3g72S0ELKK4&s=10" } },
+    { "Noillirk": { "url": "https://playdaily.org/noillirk", "thumb": "https://noillirkgame.io//data/image/game/noillirk-banner.jpg" } },
+    { "Farflung": { "url": "https://farflunggame.com", "thumb": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS_iHdu9y3zBbJWbcozEocTXwvYnqlHYGPEjMhoY_ak0e9ia3xlfNCiXPm3&s=10" } },
+    { "Moonshot": { "url": "https://moonshotdailygame.com", "thumb": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSg9OTdGHcUnC1N7Ows5pI1gTGbv9i9e3YAa7rGQl8A1w&s" } },
+    { "TypeRacer": { "url": "https://play.typeracer.com", "thumb": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcReQOXOSofRQ7Eg0HV6b8bfXI6ulkR6pYqMRlFFJkHFCpaBe1F_4N8SeRow&s=10" } }
+  ],
+  "Geography": [
+    { "Countries of the World": { "url": "https://sporcle.com/games/g/world", "thumb": "thumbs/world.png" } },
+    { "Countries of Europe": { "url": "https://sporcle.com/games/g/europe", "thumb": "thumbs/europe.png" } },
+    { "Capitals of Europe": { "url": "https://sporcle.com/games/g/europecapitals", "thumb": "thumbs/europecapitals.png" } },
+    { "Countries of Asia": { "url": "https://sporcle.com/games/g/asia", "thumb": "thumbs/asia.png" } },
+    { "Countries of South America": { "url": "https://sporcle.com/games/g/southamerica", "thumb": "thumbs/southamerica.png" } },
+    {
+      "Flags": [
+        { "Flags of Asia": { "url": "https://sporcle.com/games/g/asiaflags", "thumb": "thumbs/asiaflags.png" } }
+      ]
+    }
+  ]
+}

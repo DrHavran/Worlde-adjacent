@@ -1,0 +1,266 @@
+/* ============================================================
+   FONT
+   ============================================================ */
+
+/* Inter from Google Fonts — clean, modern, great for UI text.
+   Fallback to the OS system font if the import fails or is blocked. */
+   @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+
+   /* ============================================================
+      GLOBAL
+      ============================================================ */
+   
+   /* apply the font to everything, with sane defaults */
+   html, body {
+       font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+                    Roboto, Helvetica, Arial, sans-serif;
+       -webkit-font-smoothing: antialiased;
+       -moz-osx-font-smoothing: grayscale;
+       background: #12121c;
+       color: #e5e5f0;
+       margin: 0;
+   }
+   
+   /* page title — centered, slightly larger, some breathing room */
+   h1 {
+       text-align: center;
+       font-size: 2rem;
+       font-weight: 700;
+       letter-spacing: -0.02em;
+       margin: 2rem 1rem 1.5rem;
+   }
+   
+   
+   /* ============================================================
+      PAGE LAYOUT
+      ============================================================ */
+   
+   /* centered content column with breathing room */
+   .sections {
+       max-width: 1200px;
+       margin: 0 auto;
+       padding: 0 1.25rem 3rem;
+   }
+   
+   /* space between top-level sections ("Normal games", "Geography", ...) */
+   .sections section {
+       margin-bottom: 2.5rem;
+   }
+   
+   /* section titles */
+   .sections h2 {
+       margin: 0 0 1rem;
+       font-size: 1.35rem;
+       font-weight: 600;
+       letter-spacing: -0.01em;
+   }
+   
+   
+   /* ============================================================
+      CARD GRID
+      ============================================================ */
+   
+   /* responsive auto-fill grid: as many ~190px columns as fit */
+   .card-grid {
+       list-style: none;
+       padding: 0;
+       margin: 0;
+       display: grid;
+       grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+       gap: 1rem;
+   }
+   
+   /* subcategory ("Flags") spans the entire row */
+   .card-grid > li.category {
+       grid-column: 1 / -1;
+   }
+   
+   /* the <summary> click-to-expand row of a subcategory */
+   .card-grid details > summary {
+       cursor: pointer;
+       padding: .4rem 0;
+       font-weight: 600;
+       margin-bottom: .5rem;
+   }
+   
+   
+   /* ============================================================
+      CARD
+      ============================================================ */
+   
+   /* outer card container: rounded, clipped, hover-lift */
+   .game-card {
+       position: relative;           /* anchor for .card-link overlay */
+       list-style: none;
+       padding: 0;
+       background: #1e1e2e;
+       border: 1px solid #33334d;
+       border-radius: 10px;
+       overflow: hidden;             /* clips image to rounded corners */
+       transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+   }
+   
+   /* hover feedback on the whole card */
+   .game-card:hover {
+       transform: translateY(-2px);
+       border-color: #22c55e;
+       box-shadow: 0 8px 22px rgba(0, 0, 0, .45);
+   }
+   
+   /* invisible full-card link — one click target for the entire card */
+   .card-link {
+       position: absolute;
+       inset: 0;                     /* covers the whole card */
+       z-index: 1;                   /* above image + title, below checkbox */
+       border-radius: inherit;
+   }
+   
+   
+   /* ============================================================
+      THUMBNAIL
+      ============================================================ */
+   
+   /* wrapper: owns the aspect ratio, kills inline-image gap */
+   .thumb-wrap {
+       display: block;
+       width: 100%;
+       aspect-ratio: 16 / 9;
+       overflow: hidden;
+       background: #2a2a3e;
+       line-height: 0;               /* remove inline gap under <img> */
+       font-size: 0;                 /* same, belt-and-suspenders */
+   }
+   
+   /* the actual image: stretched to fill the wrapper exactly */
+   .thumb {
+       display: block;
+       width: 100%;
+       height: 100%;
+       object-fit: fill;             /* stretch, no crop, no letterbox */
+   }
+   
+   /* fallback when no thumb or image 404s: empty gradient box */
+   .thumb.placeholder {
+       display: block;
+       width: 100%;
+       height: 100%;
+       background: linear-gradient(135deg, #2a2a3e, #1e1e2e);
+   }
+   
+   
+   /* ============================================================
+      FOOTER (checkbox + title)
+      ============================================================ */
+   
+   /* horizontal row under the image */
+   .card-footer {
+       display: flex;
+       align-items: center;          /* vertical centering */
+       gap: .55rem;
+       padding: .6rem .75rem;
+       position: relative;
+       z-index: 1;
+       pointer-events: none;         /* clicks pass through to .card-link */
+   }
+   
+   /* re-enable clicks on the checkbox itself */
+   .card-footer .done-check {
+       pointer-events: auto;
+   }
+   
+   /* title text */
+   .card-title {
+       font-size: .9rem;
+       font-weight: 500;
+       line-height: 1.3;
+       color: #e5e5f0;
+       flex: 1;
+       min-width: 0;                 /* allow ellipsis in flex child */
+       overflow: hidden;
+       text-overflow: ellipsis;
+       white-space: nowrap;
+   }
+   
+   
+   /* ============================================================
+      GREEN DONE CHECKBOX
+      ============================================================ */
+   
+   /* wrapper label: fixed square, sits above the overlay link */
+   .done-check {
+       position: relative;
+       z-index: 2;                   /* above .card-link (z-index: 1) */
+       flex-shrink: 0;
+       align-self: center;           /* vertical center inside footer */
+       display: inline-block;
+       width: 1.35rem;
+       height: 1.35rem;
+       cursor: pointer;
+       margin: 0;
+   }
+   
+   /* the real <input>, hidden but clickable */
+   .done-check input {
+       position: absolute;
+       inset: 0;
+       margin: 0;
+       opacity: 0;
+       cursor: pointer;
+       z-index: 1;
+   }
+   
+   /* the visible rounded square */
+   .done-check .box {
+       display: block;
+       width: 100%;
+       height: 100%;
+       box-sizing: border-box;
+       border-radius: 5px;
+       background: rgba(255, 255, 255, .06);
+       border: 2px solid rgba(255, 255, 255, .35);
+       transition: background .15s ease, border-color .15s ease;
+       position: relative;
+   }
+   
+   /* checkmark drawn with an inline SVG, hidden by default */
+   .done-check .box::after {
+       content: "";
+       position: absolute;
+       inset: 0;
+       background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E") center/65% no-repeat;
+       opacity: 0;
+       transition: opacity .15s ease;
+   }
+   
+   /* checked → green background */
+   .done-check input:checked + .box {
+       background: #22c55e;
+       border-color: #22c55e;
+   }
+   
+   /* checked → show checkmark */
+   .done-check input:checked + .box::after {
+       opacity: 1;
+   }
+   
+   /* keyboard focus outline */
+   .done-check input:focus-visible + .box {
+       outline: 2px solid #22c55e;
+       outline-offset: 2px;
+   }
+   
+   
+   /* ============================================================
+      DONE STATE (dim + strike the whole card)
+      ============================================================ */
+   
+   .game-card.done .thumb-wrap,
+   .game-card.done .card-title {
+       opacity: .5;
+       filter: grayscale(.4);
+   }
+   
+   .game-card.done .card-title {
+       text-decoration: line-through;
+   }
