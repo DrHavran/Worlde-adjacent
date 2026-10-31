@@ -264,3 +264,60 @@
    .game-card.done .card-title {
        text-decoration: line-through;
    }
+   
+   
+   /* ============================================================
+      PER-CARD DAILY STREAK (footer, right side)
+      ============================================================ */
+   
+   .card-streak {
+       display: inline-flex;
+       align-items: center;
+       gap: .22rem;
+       flex-shrink: 0;
+       padding: .14rem .5rem .14rem .3rem;
+       border-radius: 999px;
+       background: rgba(255, 255, 255, .06);
+       border: 1px solid rgba(255, 255, 255, .1);
+       font-size: .74rem;
+       font-weight: 700;
+       line-height: 1;
+       color: #e5e5f0;
+       font-variant-numeric: tabular-nums;
+       transition: box-shadow .15s ease, opacity .15s ease;
+   }
+   
+   .card-streak .streak-icon {
+       display: block;
+       width: .95rem;
+       height: .95rem;
+       object-fit: contain;
+   }
+   
+   /* zero streak → muted, greyed flame */
+   .card-streak.zero {
+       opacity: .5;
+   }
+   .card-streak.zero .streak-icon {
+       filter: grayscale(1);
+   }
+   
+   /* streak alive, today not done yet → amber ring */
+   .card-streak.at-risk {
+       box-shadow: 0 0 0 1px rgba(245, 158, 11, .55);
+   }
+   
+   /* today's tick done → green ring */
+   .card-streak.hot {
+       box-shadow: 0 0 0 1px rgba(34, 197, 94, .55);
+   }
+   
+   /* pop when the counter increments */
+   @keyframes streak-bump {
+       0%   { transform: scale(1); }
+       45%  { transform: scale(1.18); }
+       100% { transform: scale(1); }
+   }
+   .card-streak.bump {
+       animation: streak-bump .35s ease;
+   }

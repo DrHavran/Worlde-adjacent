@@ -28,7 +28,6 @@ function setDone(url, done) {
 const STORAGE_DATE_KEY = "game-done-date"; // no colon → not caught by the wipe below
 
 function todayKey() {
-    // local date as YYYY-MM-DD (not UTC, so midnight is *your* midnight)
     const d = new Date();
     const y = d.getFullYear();
     const m = String(d.getMonth() + 1).padStart(2, "0");
@@ -40,7 +39,6 @@ function resetIfNewDay() {
     const today = todayKey();
     if (localStorage.getItem(STORAGE_DATE_KEY) === today) return;
 
-    // new day (or first visit) → clear every "done" flag
     Object.keys(localStorage)
         .filter(k => k.startsWith(STORAGE_PREFIX))
         .forEach(k => localStorage.removeItem(k));
@@ -48,17 +46,54 @@ function resetIfNewDay() {
     localStorage.setItem(STORAGE_DATE_KEY, today);
 }
 
+// ---------- daily streak (per game) ----------
+
+const STREAK_PREFIX = "game-streak:"; // not caught by the "game-done:" wipe above
+
+function loadStreak(url) {
+    try {
+        const parsed = JSON.parse(localStorage.getItem(STREAK_PREFIX + url));
+        if (parsed && Number.isFinite(parsed.count) && typeof parsed.last === "string") {
+            return { count: parsed.count, last: parsed.last };
+        }
+    } catch { /* missing or corrupt → fresh start */ }
+    return { count: 0, last: null };
+}
+
+function saveStreak(url, streak) {
+    localStorage.setItem(STREAK_PREFIX + url, JSON.stringify(streak));
+}
+
+function yesterdayKey() {
+    const d = new Date();
+    d.setDate(d.getDate() - 1);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+}
+
+/* first tick of the day → +1 (or reset to 1 if the chain broke) */
+function recordCompletion(url) {
+    const streak = loadStreak(url);
+    const today = todayKey();
+    if (streak.last === today) return false; // already counted today
+    streak.count = (streak.last === yesterdayKey()) ? streak.count + 1 : 1;
+    streak.last = today;
+    saveStreak(url, streak);
+    return true;
+}
+
 // ---------- one game card ----------
 
 function createCard(name, entry) {
-    // entry is either a plain URL string, or { url, thumb }
     const url   = typeof entry === "string" ? entry : entry.url;
     const thumb = typeof entry === "string" ? ""    : (entry.thumb || "");
 
     const li = document.createElement("li");
     li.className = "game-card";
 
-    // invisible overlay link — makes the whole card clickable
+    // invisible overlay link
     const link = document.createElement("a");
     link.className = "card-link";
     link.href = url;
@@ -66,7 +101,7 @@ function createCard(name, entry) {
     link.rel = "noopener noreferrer";
     link.setAttribute("aria-label", name);
 
-    // thumbnail (or placeholder if missing / broken)
+    // thumbnail (or placeholder)
     const thumbWrap = document.createElement("div");
     thumbWrap.className = "thumb-wrap";
 
@@ -88,7 +123,43 @@ function createCard(name, entry) {
         thumbWrap.appendChild(makePlaceholder());
     }
 
-    // footer: checkbox + title
+    // per-game streak badge — sits in the footer, right side
+    const streakEl = document.createElement("span");
+    streakEl.className = "card-streak";
+    streakEl.setAttribute("aria-hidden", "true");
+
+    const streakIcon = document.createElement("img");
+    streakIcon.className = "streak-icon";
+    streakIcon.src = "https://cdn-icons-png.flaticon.com/256/8722/8722283.png";
+    streakIcon.alt = "";
+
+    const streakCount = document.createElement("span");
+    streakCount.className = "streak-count";
+
+    streakEl.appendChild(streakIcon);
+    streakEl.appendChild(streakCount);
+
+    function refreshStreak(bump = false) {
+        const streak = loadStreak(url);
+        const doneToday = streak.last === todayKey();
+        const alive = doneToday || streak.last === yesterdayKey();
+        const count = alive ? streak.count : 0;
+
+        streakCount.textContent = count;
+        streakEl.classList.toggle("zero", count === 0);
+        streakEl.classList.toggle("hot", doneToday);
+        streakEl.classList.toggle("at-risk", count > 0 && !doneToday);
+
+        if (bump) {
+            streakEl.classList.remove("bump");
+            void streakEl.offsetWidth;
+            streakEl.classList.add("bump");
+        }
+    }
+
+    refreshStreak();
+
+    // footer: checkbox + title + streak
     const footer = document.createElement("div");
     footer.className = "card-footer";
 
@@ -112,12 +183,14 @@ function createCard(name, entry) {
 
     footer.appendChild(label);
     footer.appendChild(title);
+    footer.appendChild(streakEl);
 
-    // reflect initial state + wire toggle
     li.classList.toggle("done", checkbox.checked);
     checkbox.addEventListener("change", () => {
         setDone(url, checkbox.checked);
         li.classList.toggle("done", checkbox.checked);
+        const bumped = checkbox.checked ? recordCompletion(url) : false;
+        refreshStreak(bumped);
     });
 
     li.appendChild(link);
@@ -136,7 +209,6 @@ function renderList(items) {
         const [name, value] = Object.entries(item)[0];
 
         if (Array.isArray(value)) {
-            // subcategory → collapsible <details>, spans the full row
             const li = document.createElement("li");
             li.className = "category";
 
