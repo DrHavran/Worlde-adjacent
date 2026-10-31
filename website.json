@@ -11,14 +11,14 @@
     { "TypeRacer": { "url": "https://play.typeracer.com", "thumb": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcReQOXOSofRQ7Eg0HV6b8bfXI6ulkR6pYqMRlFFJkHFCpaBe1F_4N8SeRow&s=10" } }
   ],
   "Geography": [
-    { "Countries of the World": { "url": "https://sporcle.com/games/g/world", "thumb": "thumbs/world.png" } },
-    { "Countries of Europe": { "url": "https://sporcle.com/games/g/europe", "thumb": "thumbs/europe.png" } },
-    { "Capitals of Europe": { "url": "https://sporcle.com/games/g/europecapitals", "thumb": "thumbs/europecapitals.png" } },
-    { "Countries of Asia": { "url": "https://sporcle.com/games/g/asia", "thumb": "thumbs/asia.png" } },
-    { "Countries of South America": { "url": "https://sporcle.com/games/g/southamerica", "thumb": "thumbs/southamerica.png" } },
+    { "Countries of the World": { "url": "https://sporcle.com/games/g/world", "thumb": "https://github.com/DrHavran/Worlde-adjacent/blob/main/images/countries-world.png?raw=true" } },
+    { "Countries of Europe": { "url": "https://sporcle.com/games/g/europe", "thumb": "https://github.com/DrHavran/Worlde-adjacent/blob/main/images/countries-europe.png?raw=true" } },
+    { "Capitals of Europe": { "url": "https://sporcle.com/games/g/europecapitals", "thumb": "https://github.com/DrHavran/Worlde-adjacent/blob/main/images/capitals-europe.png?raw=true" } },
+    { "Countries of Asia": { "url": "https://sporcle.com/games/g/asia", "thumb": "https://github.com/DrHavran/Worlde-adjacent/blob/main/images/countries-asia.png?raw=true" } },
+    { "Countries of South America": { "url": "https://sporcle.com/games/g/southamerica", "thumb": "https://github.com/DrHavran/Worlde-adjacent/blob/main/images/countries-south-america.png?raw=true" } },
     {
       "Flags": [
-        { "Flags of Asia": { "url": "https://sporcle.com/games/g/asiaflags", "thumb": "thumbs/asiaflags.png" } }
+        { "Flags of Asia": { "url": "https://sporcle.com/games/g/asiaflags", "thumb": "https://github.com/DrHavran/Worlde-adjacent/blob/main/images/flags-world.png?raw=true" } }
       ]
     }
   ]

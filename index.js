@@ -23,6 +23,31 @@ function setDone(url, done) {
     else localStorage.removeItem(STORAGE_PREFIX + url);
 }
 
+// ---------- daily reset ----------
+
+const STORAGE_DATE_KEY = "game-done-date"; // no colon → not caught by the wipe below
+
+function todayKey() {
+    // local date as YYYY-MM-DD (not UTC, so midnight is *your* midnight)
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+}
+
+function resetIfNewDay() {
+    const today = todayKey();
+    if (localStorage.getItem(STORAGE_DATE_KEY) === today) return;
+
+    // new day (or first visit) → clear every "done" flag
+    Object.keys(localStorage)
+        .filter(k => k.startsWith(STORAGE_PREFIX))
+        .forEach(k => localStorage.removeItem(k));
+
+    localStorage.setItem(STORAGE_DATE_KEY, today);
+}
+
 // ---------- one game card ----------
 
 function createCard(name, entry) {
@@ -146,6 +171,8 @@ function render(data) {
 }
 
 // ---------- kick off ----------
+
+resetIfNewDay();
 
 getData("website.json")
     .then(render)
