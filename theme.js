@@ -12,9 +12,8 @@
         const toggle = document.querySelector("#theme-toggle");
         function updateButton() {
             const light = document.documentElement.dataset.theme === "light";
-            toggle.textContent = "Light mode";
-            toggle.setAttribute("aria-pressed", String(light));
-            toggle.title = light ? "Switch to dark mode" : "Switch to light mode";
+            toggle.textContent = light ? "Dark mode" : "White mode";
+            toggle.title = light ? "Switch to dark mode" : "Switch to white mode";
         }
         updateButton();
         toggle.addEventListener("click", () => {
