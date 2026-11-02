@@ -59,14 +59,9 @@
         "url": "https://www.nytimes.com/games/connections",
         "thumb": "images/connections.svg"
       }
-    },
-    {
-      "Waffle": {
-        "url": "https://wafflegame.net/",
-        "thumb": "images/waffle.svg"
-      }
     }
-  ],
+  ]
+,
   "Geography": [
     {
       "Countries of the World": {
