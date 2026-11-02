@@ -1,10 +1,7 @@
 // ---------- data loading ----------
 
 async function getData(file) {
-    const isProduction = window.location.hostname === "drhavran.github.io";
-    const url = isProduction
-        ? `https://drhavran.github.io/Worlde-adjacent/${file}`
-        : `../${file}`;
+    const url = new URL(file, import.meta.url);
     const response = await fetch(url);
     if (!response.ok) throw new Error(`Failed to fetch ${url}: ${response.status}`);
     return response.json();
@@ -46,7 +43,7 @@ function resetIfNewDay() {
     localStorage.setItem(STORAGE_DATE_KEY, today);
 }
 
-// ---------- daily streak (per game) ----------
+// ---------- completed-day streak (per game, gaps do not erase progress) ----------
 
 const STREAK_PREFIX = "game-streak:"; // not caught by the "game-done:" wipe above
 
@@ -64,21 +61,12 @@ function saveStreak(url, streak) {
     localStorage.setItem(STREAK_PREFIX + url, JSON.stringify(streak));
 }
 
-function yesterdayKey() {
-    const d = new Date();
-    d.setDate(d.getDate() - 1);
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    return `${y}-${m}-${day}`;
-}
-
-/* first tick of the day → +1 (or reset to 1 if the chain broke) */
+/* Count each completed day once, keeping progress across missed days. */
 function recordCompletion(url) {
     const streak = loadStreak(url);
     const today = todayKey();
     if (streak.last === today) return false; // already counted today
-    streak.count = (streak.last === yesterdayKey()) ? streak.count + 1 : 1;
+    streak.count += 1;
     streak.last = today;
     saveStreak(url, streak);
     return true;
@@ -126,7 +114,6 @@ function createCard(name, entry) {
     // per-game streak badge — sits in the footer, right side
     const streakEl = document.createElement("span");
     streakEl.className = "card-streak";
-    streakEl.setAttribute("aria-hidden", "true");
 
     const streakIcon = document.createElement("img");
     streakIcon.className = "streak-icon";
@@ -142,13 +129,14 @@ function createCard(name, entry) {
     function refreshStreak(bump = false) {
         const streak = loadStreak(url);
         const doneToday = streak.last === todayKey();
-        const alive = doneToday || streak.last === yesterdayKey();
-        const count = alive ? streak.count : 0;
+        const count = streak.count;
 
         streakCount.textContent = count;
+        streakEl.title = `${count} completed ${count === 1 ? "day" : "days"} — progress is kept if you miss a day`;
+        streakEl.setAttribute("aria-label", streakEl.title);
         streakEl.classList.toggle("zero", count === 0);
         streakEl.classList.toggle("hot", doneToday);
-        streakEl.classList.toggle("at-risk", count > 0 && !doneToday);
+        streakEl.classList.toggle("pending", count > 0 && !doneToday);
 
         if (bump) {
             streakEl.classList.remove("bump");
@@ -169,6 +157,7 @@ function createCard(name, entry) {
 
     const checkbox = document.createElement("input");
     checkbox.type = "checkbox";
+    checkbox.setAttribute("aria-label", `Mark ${name} as done`);
     checkbox.checked = isDone(url);
 
     const box = document.createElement("span");
