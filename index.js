@@ -1,3 +1,14 @@
+import { isDone, setDone, resetIfNewDay } from './Data/cookies.js';
+
+import {
+    getSession, getUser, getProfile,
+    submitCheckIn, fetchUserStats,
+} from './Data/integration.js';
+
+let currentUser = null;
+let userStats = new Map();    // game_url → { total_points, current_streak, done_today }
+let websiteData = null;
+
 // ---------- data loading ----------
 
 async function getData(file) {
@@ -10,90 +21,109 @@ async function getData(file) {
     return response.json();
 }
 
-// ---------- "done" state (per-URL, per-browser) ----------
+// ---------- header user area ----------
 
-const STORAGE_PREFIX = "game-done:";
-
-function isDone(url) {
-    return localStorage.getItem(STORAGE_PREFIX + url) === "true";
+function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
 }
 
-function setDone(url, done) {
-    if (done) localStorage.setItem(STORAGE_PREFIX + url, "true");
-    else localStorage.removeItem(STORAGE_PREFIX + url);
+async function renderUserArea() {
+    const area = document.getElementById('user-area');
+    if (!area) return;
+
+    const session = await getSession();
+    const user = session ? await getUser() : null;
+    currentUser = user;
+
+    if (!user) {
+        area.innerHTML = '<button type="button" id="login-btn">Log in</button>';
+        document.getElementById('login-btn').addEventListener('click', () => {
+            window.location.href = 'LogInPage/logIn.html';
+        });
+        return;
+    }
+
+    const profile = await getProfile(user.id);
+    const name    = profile?.username || user.email?.split('@')[0] || 'User';
+    const avatar  = profile?.avatar_url;
+
+    area.innerHTML = `
+        <div class="user-badge">
+            ${avatar ? `<img src="${escapeHtml(avatar)}" alt="">` : ''}
+            <span>${escapeHtml(name)}</span>
+        </div>
+    `;
 }
 
-// ---------- daily reset ----------
+// ---------- user stats ----------
 
-const STORAGE_DATE_KEY = "game-done-date"; // no colon → not caught by the wipe below
-
-function todayKey() {
-    const d = new Date();
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    return `${y}-${m}-${day}`;
+async function loadUserStats() {
+    if (!currentUser) { userStats = new Map(); return; }
+    userStats = await fetchUserStats(currentUser.id);
+    // mirror "done today" into localStorage so the popup stays suppressed
+    for (const [url, stat] of userStats) {
+        if (stat.done_today) setDone(url, true);
+    }
 }
 
-function resetIfNewDay() {
-    const today = todayKey();
-    if (localStorage.getItem(STORAGE_DATE_KEY) === today) return;
+// ---------- points dialog ----------
 
-    Object.keys(localStorage)
-        .filter(k => k.startsWith(STORAGE_PREFIX))
-        .forEach(k => localStorage.removeItem(k));
+const pointsDialog = document.getElementById('points-dialog');
+const pointsForm   = document.getElementById('points-form');
+const pointsInput  = document.getElementById('points-input');
+const pointsTitle  = document.getElementById('points-title');
+const pointsCancel = document.getElementById('points-cancel');
 
-    localStorage.setItem(STORAGE_DATE_KEY, today);
+let pendingPoints = null;
+
+function openPointsDialog(url, name, onComplete) {
+    pendingPoints = { url, onComplete };
+    pointsTitle.textContent = name;
+    pointsInput.value = '';
+    pointsDialog.showModal();
+    pointsInput.focus();
 }
 
-// ---------- daily streak (per game) ----------
+pointsCancel.addEventListener('click', () => {
+    pendingPoints = null;
+    pointsDialog.close();
+});
 
-const STREAK_PREFIX = "game-streak:"; // not caught by the "game-done:" wipe above
+pointsForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!pendingPoints) return;
 
-function loadStreak(url) {
+    const points = parseInt(pointsInput.value, 10);
+    if (!Number.isFinite(points) || points < 0) return;
+
+    const { url, onComplete } = pendingPoints;
+
     try {
-        const parsed = JSON.parse(localStorage.getItem(STREAK_PREFIX + url));
-        if (parsed && Number.isFinite(parsed.count) && typeof parsed.last === "string") {
-            return { count: parsed.count, last: parsed.last };
-        }
-    } catch { /* missing or corrupt → fresh start */ }
-    return { count: 0, last: null };
-}
-
-function saveStreak(url, streak) {
-    localStorage.setItem(STREAK_PREFIX + url, JSON.stringify(streak));
-}
-
-function yesterdayKey() {
-    const d = new Date();
-    d.setDate(d.getDate() - 1);
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    return `${y}-${m}-${day}`;
-}
-
-/* first tick of the day → +1 (or reset to 1 if the chain broke) */
-function recordCompletion(url) {
-    const streak = loadStreak(url);
-    const today = todayKey();
-    if (streak.last === today) return false; // already counted today
-    streak.count = (streak.last === yesterdayKey()) ? streak.count + 1 : 1;
-    streak.last = today;
-    saveStreak(url, streak);
-    return true;
-}
+        const result = await submitCheckIn(url, points);
+        setDone(url, true);
+        pendingPoints = null;
+        pointsDialog.close();
+        await onComplete?.(result);
+    } catch (err) {
+        console.error('check_in failed:', err);
+        alert(err.message || 'Failed to save points');
+    }
+});
 
 // ---------- one game card ----------
 
 function createCard(name, entry) {
     const url   = typeof entry === "string" ? entry : entry.url;
     const thumb = typeof entry === "string" ? ""    : (entry.thumb || "");
+    const label = (typeof entry === "object" && entry.label !== undefined)
+        ? entry.label
+        : "pts";
 
     const li = document.createElement("li");
     li.className = "game-card";
 
-    // invisible overlay link
     const link = document.createElement("a");
     link.className = "card-link";
     link.href = url;
@@ -101,7 +131,16 @@ function createCard(name, entry) {
     link.rel = "noopener noreferrer";
     link.setAttribute("aria-label", name);
 
-    // thumbnail (or placeholder)
+    link.addEventListener('click', () => {
+        if (!currentUser) return;
+        if (isDone(url)) return;
+        openPointsDialog(url, name, async () => {
+            await loadUserStats();
+            if (websiteData) render(websiteData);
+        });
+    });
+
+    // thumbnail
     const thumbWrap = document.createElement("div");
     thumbWrap.className = "thumb-wrap";
 
@@ -123,75 +162,54 @@ function createCard(name, entry) {
         thumbWrap.appendChild(makePlaceholder());
     }
 
-    // per-game streak badge — sits in the footer, right side
-    const streakEl = document.createElement("span");
-    streakEl.className = "card-streak";
-    streakEl.setAttribute("aria-hidden", "true");
-
-    const streakIcon = document.createElement("img");
-    streakIcon.className = "streak-icon";
-    streakIcon.src = "https://cdn-icons-png.flaticon.com/256/8722/8722283.png";
-    streakIcon.alt = "";
-
-    const streakCount = document.createElement("span");
-    streakCount.className = "streak-count";
-
-    streakEl.appendChild(streakIcon);
-    streakEl.appendChild(streakCount);
-
-    function refreshStreak(bump = false) {
-        const streak = loadStreak(url);
-        const doneToday = streak.last === todayKey();
-        const alive = doneToday || streak.last === yesterdayKey();
-        const count = alive ? streak.count : 0;
-
-        streakCount.textContent = count;
-        streakEl.classList.toggle("zero", count === 0);
-        streakEl.classList.toggle("hot", doneToday);
-        streakEl.classList.toggle("at-risk", count > 0 && !doneToday);
-
-        if (bump) {
-            streakEl.classList.remove("bump");
-            void streakEl.offsetWidth;
-            streakEl.classList.add("bump");
-        }
-    }
-
-    refreshStreak();
-
-    // footer: checkbox + title + streak
-    const footer = document.createElement("div");
-    footer.className = "card-footer";
-
-    const label = document.createElement("label");
-    label.className = "done-check";
-    label.title = "Mark as done";
-
-    const checkbox = document.createElement("input");
-    checkbox.type = "checkbox";
-    checkbox.checked = isDone(url);
-
-    const box = document.createElement("span");
-    box.className = "box";
-
-    label.appendChild(checkbox);
-    label.appendChild(box);
-
+    // title
     const title = document.createElement("span");
     title.className = "card-title";
     title.textContent = name;
 
-    footer.appendChild(label);
-    footer.appendChild(title);
-    footer.appendChild(streakEl);
+        // footer: title (+ points + streak if logged in)
+        const footer = document.createElement("div");
+        footer.className = "card-footer";
+        footer.appendChild(title);
+    
+        if (currentUser) {
+            const stat = userStats.get(url);
+    
+            // points — only render once the user has logged a score
+            if (stat) {
+                const pointsEl = document.createElement("span");
+                pointsEl.className = "card-points";
+                pointsEl.textContent = label
+                    ? `${stat.total_points}${label}`
+                    : String(stat.total_points);
+                footer.appendChild(pointsEl);
+            }
+    
+            // streak — still shown (0 with grey flame if never played)
+            const streakStat = stat ?? { current_streak: 0, done_today: false };
+    
+            const streakEl = document.createElement("span");
+            streakEl.className = "card-streak";
+    
+            const icon = document.createElement("img");
+            icon.className = "streak-icon";
+            icon.src = "https://cdn-icons-png.flaticon.com/256/8722/8722283.png";
+            icon.alt = "";
+    
+            const count = document.createElement("span");
+            count.className = "streak-count";
+            count.textContent = streakStat.current_streak;
+    
+            streakEl.classList.toggle("zero",    streakStat.current_streak === 0);
+            streakEl.classList.toggle("hot",     streakStat.done_today);
+            streakEl.classList.toggle("at-risk", streakStat.current_streak > 0 && !streakStat.done_today);
+    
+            streakEl.appendChild(icon);
+            streakEl.appendChild(count);
+            footer.appendChild(streakEl);
+        }
 
-    li.classList.toggle("done", checkbox.checked);
-    checkbox.addEventListener("change", () => {
-        setDone(url, checkbox.checked);
-        li.classList.toggle("done", checkbox.checked);
-        const bumped = checkbox.checked ? recordCompletion(url) : false;
-        refreshStreak(bumped);
-    });
+    li.classList.toggle("done", currentUser && isDone(url));
 
     li.appendChild(link);
     li.appendChild(thumbWrap);
@@ -246,10 +264,15 @@ function render(data) {
 
 resetIfNewDay();
 
-getData("website.json")
-    .then(render)
-    .catch((err) => {
+(async () => {
+    await renderUserArea();
+    await loadUserStats();
+    try {
+        websiteData = await getData("website.json");
+        render(websiteData);
+    } catch (err) {
         console.error(err);
         document.querySelector(".sections").textContent =
             "Failed to load games. Check the console.";
-    });
+    }
+})();

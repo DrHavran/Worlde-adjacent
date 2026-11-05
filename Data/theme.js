@@ -10,6 +10,7 @@
 
     document.addEventListener("DOMContentLoaded", () => {
         const toggle = document.querySelector("#theme-toggle");
+        if (!toggle) return;
         function updateButton() {
             const light = document.documentElement.dataset.theme === "light";
             toggle.textContent = light ? "Dark mode" : "White mode";

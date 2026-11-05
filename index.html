@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="theme.js"></script>
+    <script src="Data/theme.js"></script>
     <link rel="stylesheet" href="index.css">
 
     <link
@@ -17,11 +17,27 @@
 
     <header class="page-header">
         <h1>Worlde adjacent games</h1>
-        <button id="theme-toggle" type="button">White mode</button>
+        <div class="header-right">
+            <button id="theme-toggle" type="button">White mode</button>
+            <div id="user-area"></div>
+        </div>
     </header>
 
     <main class="sections"></main>
 
+    <dialog id="points-dialog">
+        <form id="points-form">
+            <h2 id="points-title"></h2>
+            <label for="points-input">Points</label>
+            <input type="number" id="points-input" min="0" required>
+            <div class="dialog-buttons">
+                <button type="button" id="points-cancel">Cancel</button>
+                <button type="submit">Save</button>
+            </div>
+        </form>
+    </dialog>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script type="module" src="index.js"></script>
 </body>
 </html>
