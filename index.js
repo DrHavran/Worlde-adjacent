@@ -1,5 +1,122 @@
-import { createGameState } from './game-state.js';
-import { validateCatalog } from './catalog.js';
+// Keep the original storage keys so existing completions and streaks survive upgrades.
+const DONE_PREFIX = 'game-done:';
+const STREAK_PREFIX = 'game-streak:';
+const DATE_KEY = 'game-done-date';
+
+function dateKey(date) {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
+function createGameState(getStorage, now = () => new Date()) {
+    // A null entry is a tombstone: failed removals must not revive stale saved data.
+    const fallback = new Map();
+    const storage = {
+        get(key) {
+            if (fallback.has(key)) return fallback.get(key);
+            try { return getStorage().getItem(key); } catch { return null; }
+        },
+        write(key, value) {
+            try {
+                if (value === null) getStorage().removeItem(key);
+                else getStorage().setItem(key, value);
+                fallback.delete(key);
+            } catch { fallback.set(key, value); }
+        },
+        keys() {
+            let saved = [];
+            try { saved = Object.keys(getStorage()); } catch { /* Optional storage. */ }
+            return [...new Set([...saved, ...fallback.keys()])];
+        },
+    };
+
+    function dates() {
+        const date = new Date(now());
+        const today = dateKey(date);
+        date.setDate(date.getDate() - 1);
+        return { today, yesterday: dateKey(date) };
+    }
+
+    function resetIfNewDay() {
+        const { today } = dates();
+        if (storage.get(DATE_KEY) === today) return false;
+        for (const key of storage.keys()) {
+            if (key.startsWith(DONE_PREFIX)) storage.write(key, null);
+        }
+        storage.write(DATE_KEY, today);
+        return true;
+    }
+
+    function loadStreak(url) {
+        try {
+            const value = JSON.parse(storage.get(STREAK_PREFIX + url));
+            if (Number.isSafeInteger(value?.count) && value.count > 0 &&
+                typeof value.last === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value.last) &&
+                dateKey(new Date(`${value.last}T12:00:00`)) === value.last) return value;
+        } catch { /* Missing or corrupt data starts a fresh streak. */ }
+        return { count: 0, last: null };
+    }
+
+    return {
+        resetIfNewDay,
+        isDone(url) {
+            resetIfNewDay();
+            return storage.get(DONE_PREFIX + url) === 'true';
+        },
+        setDone(url, done) {
+            resetIfNewDay();
+            storage.write(DONE_PREFIX + url, done ? 'true' : null);
+        },
+        recordCompletion(url) {
+            resetIfNewDay();
+            const streak = loadStreak(url);
+            const { today, yesterday } = dates();
+            if (streak.last === today) return false;
+            const count = streak.last === yesterday ? Math.min(streak.count + 1, Number.MAX_SAFE_INTEGER) : 1;
+            storage.write(STREAK_PREFIX + url, JSON.stringify({ count, last: today }));
+            return true;
+        },
+        streakFor(url) {
+            const streak = loadStreak(url);
+            const { today, yesterday } = dates();
+            const count = [today, yesterday].includes(streak.last) ? streak.count : 0;
+            return { count, doneToday: streak.last === today, label: `${count} ${count === 1 ? 'day' : 'days'} streak` };
+        },
+    };
+}
+
+// Validate the editable JSON before either layout creates links from it.
+function validateCatalog(data, baseURL) {
+    if (!data || Array.isArray(data) || typeof data !== 'object') {
+        throw new Error('The game catalog must contain named collections.');
+    }
+    function checkURL(value, allowRelative = false) {
+        if (typeof value !== 'string' || !value.trim()) throw new Error('Missing game URL.');
+        const url = allowRelative ? new URL(value, baseURL) : new URL(value);
+        if (!['http:', 'https:'].includes(url.protocol)) throw new Error('Unsupported URL protocol.');
+    }
+    function checkItems(items) {
+        if (!Array.isArray(items)) throw new Error('A collection must be an array.');
+        for (const item of items) {
+            if (!item || typeof item !== 'object' || Array.isArray(item) || Object.keys(item).length !== 1) {
+                throw new Error('Each catalog entry must have one name.');
+            }
+            const [name, value] = Object.entries(item)[0];
+            if (!name.trim()) throw new Error('A game or group needs a name.');
+            if (Array.isArray(value)) checkItems(value);
+            else if (typeof value === 'string') checkURL(value);
+            else {
+                if (!value || typeof value !== 'object') throw new Error('Invalid game entry.');
+                checkURL(value.url);
+                if (value.thumb) checkURL(value.thumb, true);
+            }
+        }
+    }
+    for (const [name, items] of Object.entries(data)) {
+        if (!name.trim()) throw new Error('A collection needs a name.');
+        checkItems(items);
+    }
+    return data;
+}
 
 const { isDone, setDone, resetIfNewDay, recordCompletion, streakFor } =
     createGameState(() => localStorage);
