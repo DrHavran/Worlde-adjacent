@@ -17,9 +17,21 @@ Open http://localhost:8000. Keep the terminal running; Ctrl+C stops the server.
 - Click a collection to switch libraries.
 - Click a smaller tile to select it, then click the selected tile or Play game to launch it in a new tab.
 - In Modern, left/right arrows browse games; up/down arrows switch collections.
-- Enter or A launches the selected game, B returns to all games, Y toggles completion.
+- Enter or A launches the selected game, B returns to all games, Y toggles completion. When a button or link has keyboard focus, Enter activates that control.
 - Press / or click Search games to search the entire library. Type to filter; up/down selects a result, Enter opens it, Escape restores your previous selection.
 - Scroll the Modern cover row on mobile. A keyboard-controls guide and the selected game’s streak are visible below the library.
 - Completion and theme preferences are saved in this browser. The latest upstream's daily streak rules are preserved.
 
 No build step or dependencies are required. Remote cover images and the optional font need internet access; local tile artwork remains available without them.
+
+For development checks, use a supported Node.js release (22.22.2+, 24.15+, or 26+; see `package.json`):
+
+```sh
+npm ci
+npm run check
+npm test
+```
+
+The test dependency is only for development; GitHub Pages serves the HTML, CSS, JavaScript modules and JSON directly. The tests cover both layouts, keyboard focus, search, saved preferences, storage failures, catalog validation and daily streak boundaries. DOM tests do not replace visual browser checks.
+
+Completion resets at local midnight. Completing on consecutive days extends a streak; missing a day resets it. Unchecking a completed game does not remove that day's streak credit, and rechecking never adds another day. Existing `game-done:*`, `game-streak:*`, design and theme storage keys are preserved.

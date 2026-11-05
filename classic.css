@@ -1,5 +1,6 @@
 /* Original card layout, scoped to the selected design. */
 :root[data-design="classic"] {
+    --ink:var(--text); --panel:var(--card); --line:var(--border);
     color-scheme: dark; --page: #12121c; --text: #e5e5f0; --card: #1e1e2e; --border: #33334d; --thumb: #2a2a3e; --subtle: rgba(255, 255, 255, .06); --badge-border: rgba(255, 255, 255, .1); --check-border: rgba(255, 255, 255, .35); --accent: #22c55e; --shadow: rgba(0, 0, 0, .45);
 }
 
@@ -145,14 +146,6 @@
 
 :root[data-design="classic"] .card-streak.bump {
     animation: 0.35s streak-bump;
-}
-
-:root[data-design="classic"] .page-header {
-    margin: 1rem auto 1.5rem; padding: 0px 1.25rem; display: grid; grid-template-columns: minmax(0px, 1fr) auto; row-gap: 1rem;
-}
-
-:root[data-design="classic"] .page-header h1 {
-    grid-area: 2 / 1 / auto / -1; margin: 0px;
 }
 
 :root[data-design="classic"] #theme-toggle {

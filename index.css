@@ -55,7 +55,9 @@ footer { display:flex; align-items:center; justify-content:flex-end; gap:16px; p
 #game-search::placeholder { color:#aaa; }
 #search-count, #search-hint { font-size:11px; white-space:nowrap; }
 #close-search { color:inherit; border:1px solid #777; background:none; border-radius:3px; padding:5px 8px; font-size:12px; }
-#empty-results, #loading { padding:30px 0; }
+#empty-results { padding:30px 0; }
+#loading, .page-message { margin:24px 5vw; }
+body:has(#search-bar:not([hidden])) { padding-bottom:100px; }
 :root[data-design="classic"] #dashboard,
 :root[data-design="modern"] #classic { display:none; }
 :root[data-design="classic"] #classic h1 { margin:2rem 1rem; }

@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#69a92b">
+    <meta name="theme-color" content="#101116">
     <title>Wordle Adjacent Games</title>
     <script src="design.js"></script>
     <script src="theme.js"></script>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
-    <link rel="stylesheet" href="index.css?v=8">
-    <link rel="stylesheet" href="classic.css?v=1">
+    <link rel="stylesheet" href="index.css?v=9">
+    <link rel="stylesheet" href="classic.css?v=2">
     <link rel="stylesheet" href="modern.css?v=3">
 </head>
 <body>
@@ -18,20 +18,22 @@
         <div class="header-tools">
             <label class="design-choice">Design <select id="design-select"><option value="modern">Modern</option><option value="classic">Original</option></select></label>
             <label class="remember-design"><input id="remember-design" type="checkbox" checked> Remember design</label>
-            <button id="open-search" class="search-trigger" type="button" aria-controls="search-bar" aria-expanded="false"><kbd>/</kbd> Search games</button>
+            <button id="open-search" disabled class="search-trigger" type="button" aria-controls="search-bar" aria-expanded="false"><kbd>/</kbd> Search games</button>
         </div>
     </header>
+    <p id="loading" role="status">Opening your game library…</p>
+    <noscript><p class="page-message">Enable JavaScript to load the game library.</p></noscript>
     <main id="dashboard">
         <nav class="channels" aria-label="Game collections" id="channels"></nav>
         <section class="library" aria-label="Game library">
             <div class="library-heading"><span id="collection-label">YOUR GAME LIBRARY</span><span class="online"><i></i> Ready to play</span></div>
-            <div class="stage" id="stage"><div id="tiles" class="tiles"></div><p id="empty-results" hidden>No games found. Try another search.</p><p id="loading" role="status">Opening your game library…</p></div>
+            <div class="stage" id="stage"><div id="tiles" class="tiles"></div><p id="empty-results" hidden>No games found. Try another search.</p></div>
             <div class="selection-details">
                 <div class="modern-art" aria-hidden="true"><span id="modern-monogram"></span><img id="modern-cover" alt="" hidden></div>
                 <div class="selection-copy"><p class="eyebrow" id="game-category">ALL GAMES</p><h1 id="game-name">Welcome back.</h1><p id="game-description">Choose a game and make it a daily ritual.</p><p id="selected-streak" class="selected-streak" role="status">🔥 0 days streak</p></div>
-                <div class="selection-actions"><a id="play-game" class="play-button" target="_blank" rel="noopener noreferrer"><span class="key key-a">A</span> Play game <span aria-hidden="true">↗</span></a><button id="complete-game" type="button"><span class="key key-y">Y</span><span id="completion-label">Mark complete</span></button></div>
+                <div class="selection-actions"><a id="play-game" class="play-button" target="_blank" rel="noopener noreferrer"><span class="key key-a">A</span> Play game <span aria-hidden="true">↗</span></a><button id="complete-game" type="button" disabled><span class="key key-y">Y</span><span id="completion-label">Mark complete</span></button></div>
             </div>
-            <div class="shelf-controls"><span><b id="position">00</b><span id="total"> / 00</span></span><div class="progress-track"><span id="progress"></span></div><button id="previous" type="button" aria-label="Previous game">←</button><button id="next" type="button" aria-label="Next game">→</button></div>
+            <div class="shelf-controls"><span><b id="position">00</b><span id="total"> / 00</span></span><div class="progress-track"><span id="progress"></span></div><button id="previous" type="button" disabled aria-label="Previous game">←</button><button id="next" type="button" disabled aria-label="Next game">→</button></div>
         </section>
         <section class="controls-guide" aria-labelledby="controls-heading">
             <h2 id="controls-heading">Controls</h2>

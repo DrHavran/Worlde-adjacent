@@ -1,0 +1,11 @@
+{
+  "name": "wordle-adjacent-games",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "check": "node --check index.js && node --check game-state.js && node --check catalog.js && node --check design.js && node --check theme.js"
+  },
+  "engines": { "node": "^22.22.2 || ^24.15.0 || >=26.0.0" },
+  "devDependencies": { "jsdom": "31.0.0" }
+}

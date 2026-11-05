@@ -1,93 +1,14 @@
-// Preserve the existing game state keys, with an in-memory fallback.
-const memory = new Map();
-const storage = {
-    getItem(key) { if (memory.has(key)) return memory.get(key); try { return localStorage.getItem(key); } catch { return null; } },
-    setItem(key, value) { try { localStorage.setItem(key, value); memory.delete(key); } catch { memory.set(key, String(value)); } },
-    removeItem(key) { memory.delete(key); try { localStorage.removeItem(key); } catch { /* Storage is optional. */ } },
-    keys() { try { return [...new Set([...Object.keys(localStorage), ...memory.keys()])]; } catch { return [...memory.keys()]; } }
-};
+import { createGameState } from './game-state.js';
+import { validateCatalog } from './catalog.js';
 
-// ---------- data loading ----------
+const { isDone, setDone, resetIfNewDay, recordCompletion, streakFor } =
+    createGameState(() => localStorage);
 
 async function getData(file) {
     const url = new URL(file, import.meta.url);
     const response = await fetch(url);
     if (!response.ok) throw new Error(`Failed to fetch ${url}: ${response.status}`);
-    return response.json();
-}
-
-// ---------- "done" state (per-URL, per-browser) ----------
-
-const STORAGE_PREFIX = "game-done:";
-
-function isDone(url) {
-    return storage.getItem(STORAGE_PREFIX + url) === "true";
-}
-
-function setDone(url, done) {
-    if (done) storage.setItem(STORAGE_PREFIX + url, "true");
-    else storage.removeItem(STORAGE_PREFIX + url);
-}
-
-// ---------- daily reset ----------
-
-const STORAGE_DATE_KEY = "game-done-date"; // no colon → not caught by the wipe below
-
-function todayKey() {
-    const d = new Date();
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    return `${y}-${m}-${day}`;
-}
-
-function resetIfNewDay() {
-    const today = todayKey();
-    if (storage.getItem(STORAGE_DATE_KEY) === today) return;
-
-    storage.keys()
-        .filter(k => k.startsWith(STORAGE_PREFIX))
-        .forEach(k => storage.removeItem(k));
-
-    storage.setItem(STORAGE_DATE_KEY, today);
-}
-
-// ---------- daily streak (per game) ----------
-
-const STREAK_PREFIX = "game-streak:"; // not caught by the "game-done:" wipe above
-
-function loadStreak(url) {
-    try {
-        const parsed = JSON.parse(storage.getItem(STREAK_PREFIX + url));
-        if (parsed && Number.isFinite(parsed.count) && typeof parsed.last === "string") {
-            return { count: parsed.count, last: parsed.last };
-        }
-    } catch { /* missing or corrupt → fresh start */ }
-    return { count: 0, last: null };
-}
-
-function saveStreak(url, streak) {
-    storage.setItem(STREAK_PREFIX + url, JSON.stringify(streak));
-}
-
-function yesterdayKey() {
-    const d = new Date();
-    d.setDate(d.getDate() - 1);
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    return `${y}-${m}-${day}`;
-}
-
-/* first tick of the day → +1 (or reset to 1 if the chain broke) */
-function recordCompletion(url) {
-    const streak = loadStreak(url);
-    const today = todayKey();
-    if (streak.last === today) return false; // already counted today
-    streak.count = (streak.last === yesterdayKey()) ? streak.count + 1 : 1;
-    streak.last = today;
-    saveStreak(url, streak);
-    return true;
+    return validateCatalog(await response.json(), url);
 }
 
 // ---------- game library ----------
@@ -95,17 +16,20 @@ const $ = selector => document.querySelector(selector);
 let collections = [], collectionIndex = 0, selectedIndex = 0, cards = [], games = [];
 let searchOpen = false, previousSelection = null, previousFocus = null;
 let libraryData = null;
+let classicSearchMode = null;
+const classicCards = new Map();
 function flatten(items, group) {
     return items.flatMap(item => Object.entries(item).flatMap(([name, value]) => Array.isArray(value)
         ? flatten(value, name)
-        : [{ name, group, ...(typeof value === 'string' ? { url: value } : value) }]));
+        : [{ ...(typeof value === 'string' ? { url: value } : value), name, group }]));
 }
 function render(data) {
     libraryData = data;
     const groups = Object.entries(data).map(([name, items]) => ({ name: name === 'Normal games' ? 'Daily games' : name, games: flatten(items, name) }));
     collections = [...groups, { name: 'All games', games: groups.flatMap(group => group.games) }];
     if (!collections.at(-1).games.length) throw new Error('No games found in the library.');
-    $('#loading').remove();
+    $('#loading').hidden = true;
+    $('#open-search').disabled = false;
     collections.forEach((collection, index) => {
         const button = document.createElement('button');
         button.type = 'button'; button.className = 'channel';
@@ -127,6 +51,7 @@ function selectCollection(index) {
 }
 function buildCards() {
     renderClassic();
+    const tileHadFocus = $('#tiles').contains(document.activeElement);
     $('#tiles').replaceChildren();
     cards = games.map((game, index) => {
         const card = document.createElement('a'); card.className = 'game-tile';
@@ -144,7 +69,10 @@ function buildCards() {
         const title = document.createElement('strong'); title.textContent = game.name;
         const subtitle = document.createElement('small'); subtitle.textContent = game.group === 'Normal games' ? 'Daily games' : game.group;
         bottom.append(title, subtitle); card.append(bottom);
-        card.addEventListener('click', event => { if (index !== selectedIndex) { event.preventDefault(); selectGame(index); } });
+        card.addEventListener('click', event => {
+            if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey || event.button !== 0) return;
+            if (index !== selectedIndex) { event.preventDefault(); selectGame(index); }
+        });
         $('#tiles').append(card); return card;
     });
     $('#empty-results').hidden = games.length > 0;
@@ -167,9 +95,11 @@ function buildCards() {
         return;
     }
     selectGame(0);
+    if (tileHadFocus) cards[0]?.focus({ preventScroll: true });
 }
 function selectGame(index) {
     if (!games.length) return;
+    const tileHadFocus = $('#tiles').contains(document.activeElement);
     selectedIndex = Math.max(0, Math.min(games.length - 1, index));
     const game = games[selectedIndex];
     cards.forEach((card, i) => {
@@ -177,6 +107,7 @@ function selectGame(index) {
         card.classList.toggle('selected', i === selectedIndex);
         card.setAttribute('aria-current', String(i === selectedIndex));
     });
+    if (tileHadFocus) cards[selectedIndex].focus({ preventScroll: true });
     $('#game-name').textContent = game.name;
     $('#game-category').textContent = game.group === 'Normal games' ? 'DAILY GAMES' : game.group.toUpperCase();
     $('#game-description').textContent = modernDescription(game);
@@ -218,21 +149,20 @@ function updateModernArtwork(game) {
     else image.removeAttribute('src');
 }
 function refreshProgress() {
+    for (const refresh of classicCards.values()) refresh();
     if (!games.length) return;
     cards.forEach((card, i) => {
-        const game = games[i], done = isDone(game.url), streak = loadStreak(game.url);
-        const alive = [todayKey(), yesterdayKey()].includes(streak.last);
+        const game = games[i], done = isDone(game.url), streak = streakFor(game.url);
         card.classList.toggle('completed', done);
-        const count = alive ? streak.count : 0;
+        const count = streak.count;
         const badge = card.querySelector('.tile-done');
         badge.textContent = `${done ? '✓ · ' : ''}${count}d`;
-        badge.title = `${done ? 'Completed today. ' : ''}${count} ${count === 1 ? 'day' : 'days'} streak`;
+        badge.title = `${done ? 'Completed today. ' : ''}${streak.label}`;
         badge.setAttribute('aria-label', badge.title);
     });
-    const streak = loadStreak(games[selectedIndex].url);
-    const count = [todayKey(), yesterdayKey()].includes(streak.last) ? streak.count : 0;
+    const streak = streakFor(games[selectedIndex].url);
     $('#selected-streak').hidden = false;
-    $('#selected-streak').textContent = `🔥 ${count} ${count === 1 ? 'day' : 'days'} streak`;
+    $('#selected-streak').textContent = `🔥 ${streak.label}`;
     const done = isDone(games[selectedIndex].url);
     $('#complete-game').setAttribute('aria-pressed', String(done));
     $('#completion-label').textContent = done ? 'Completed today' : 'Mark complete';
@@ -241,7 +171,7 @@ function refreshProgress() {
 function toggleCompletion() {
     if (!games.length) return;
     const url = games[selectedIndex].url, done = !isDone(url);
-    setDone(url, done); if (done) recordCompletion(url); refreshProgress(); renderClassic();
+    setDone(url, done); if (done) recordCompletion(url); refreshProgress();
     $('#announcement').textContent = `${games[selectedIndex].name} ${done ? 'completed' : 'marked incomplete'}`;
 }
 function createClassicCard(name, entry) {
@@ -257,7 +187,7 @@ function createClassicCard(name, entry) {
     link.href = url;
     link.target = "_blank";
     link.rel = "noopener noreferrer";
-    link.setAttribute("aria-label", name);
+    link.setAttribute("aria-label", `${name} (opens in a new tab)`);
 
     // thumbnail (or placeholder)
     const thumbWrap = document.createElement("div");
@@ -284,7 +214,7 @@ function createClassicCard(name, entry) {
     // per-game streak badge — sits in the footer, right side
     const streakEl = document.createElement("span");
     streakEl.className = "card-streak";
-    streakEl.setAttribute("aria-hidden", "true");
+    streakEl.setAttribute("role", "img");
 
     const streakIcon = document.createElement("img");
     streakIcon.className = "streak-icon";
@@ -298,10 +228,9 @@ function createClassicCard(name, entry) {
     streakEl.appendChild(streakCount);
 
     function refreshStreak(bump = false) {
-        const streak = loadStreak(url);
-        const doneToday = streak.last === todayKey();
-        const alive = doneToday || streak.last === yesterdayKey();
-        const count = alive ? streak.count : 0;
+        const { count, doneToday, label } = streakFor(url);
+        streakEl.setAttribute('aria-label', label);
+        streakEl.title = label;
 
         streakCount.textContent = count;
         streakEl.classList.toggle("zero", count === 0);
@@ -353,6 +282,11 @@ function createClassicCard(name, entry) {
         refreshProgress();
     });
 
+    classicCards.set(li, () => {
+        checkbox.checked = isDone(url);
+        li.classList.toggle('done', checkbox.checked);
+        refreshStreak();
+    });
     li.appendChild(link);
     li.appendChild(thumbWrap);
     li.appendChild(footer);
@@ -394,6 +328,9 @@ function highlightClassicResult() {
 }
 function renderClassic() {
     if (!libraryData) return;
+    if (!searchOpen && classicSearchMode === false) return;
+    classicSearchMode = searchOpen;
+    classicCards.clear();
     const container = document.querySelector('.sections');
     container.replaceChildren();
     const data = searchOpen ? { 'Search results': games.map(game => ({ [game.name]: game })) } : libraryData;
@@ -438,11 +375,13 @@ function closeSearch() {
     selectCollection(previousSelection.collection);
     selectGame(previousSelection.game);
     if (previousFocus?.isConnected) previousFocus.focus();
+    else if (document.documentElement.dataset.design === 'modern') cards[selectedIndex]?.focus();
+    else $('#open-search').focus();
 }
 function filterGames() {
     const query = $('#game-search').value.trim().toLocaleLowerCase();
     const words = query.split(/\s+/).filter(Boolean);
-    games = collections.at(-1).games.filter(game => words.every(word => `${game.name} ${game.group}`.toLocaleLowerCase().includes(word)));
+    games = collections.at(-1).games.filter(game => words.every(word => `${game.name} ${game.group === 'Normal games' ? 'Daily games' : game.group}`.toLocaleLowerCase().includes(word)));
     document.querySelectorAll('.channel').forEach(button => button.setAttribute('aria-current', 'false'));
     $('#collection-label').textContent = `SEARCH RESULTS · ${games.length} GAMES`;
     $('#search-count').textContent = `${games.length} ${games.length === 1 ? 'match' : 'matches'}`;
@@ -461,32 +400,48 @@ document.addEventListener('keydown', event => {
         if (event.key === 'ArrowDown' || event.key === 'ArrowUp') { event.preventDefault(); selectGame(selectedIndex + (event.key === 'ArrowDown' ? 1 : -1)); }
         return;
     }
-    if (/INPUT|TEXTAREA|SELECT/.test(event.target.tagName) || event.target.isContentEditable) return;
+    if (event.target.closest?.('input, textarea, select, [contenteditable]:not([contenteditable="false"])')) return;
     if (event.key === '/') { event.preventDefault(); openSearch(); return; }
     if (document.documentElement.dataset.design === 'classic' && !searchOpen) return;
     if (!games.length) return;
-    // Browsing controls launch the selected game; other controls retain native activation.
-    if (event.key === 'Enter' && event.target.closest?.('button, a')
-        && !event.target.closest('.game-tile, .channel, #previous, #next')) return;
+    // Enter activates focused native controls; bare Enter launches the selection.
+    if (event.key === 'Enter' && event.target.closest?.('button, a, summary')) {
+        if (event.repeat && event.target.closest('.game-tile, #play-game')) event.preventDefault();
+        return;
+    }
     const key = event.key.toLowerCase();
     const actions = {
         arrowleft: () => selectGame(selectedIndex - 1), arrowright: () => selectGame(selectedIndex + 1),
         arrowup: () => selectCollection(collectionIndex - 1), arrowdown: () => selectCollection(collectionIndex + 1),
         enter: () => { if (!event.repeat) launchGame(); },
-        a: launchGame, b: () => selectCollection(collections.length - 1), y: () => { if (!event.repeat) toggleCompletion(); },
+        a: () => { if (!event.repeat) launchGame(); }, b: () => selectCollection(collections.length - 1), y: () => { if (!event.repeat) toggleCompletion(); },
     };
     if (actions[key]) { event.preventDefault(); actions[key](); }
 });
-window.addEventListener('resize', () => { if (games.length) selectGame(selectedIndex); });
-window.addEventListener('storage', () => { if (games.length) { resetIfNewDay(); refreshProgress(); renderClassic(); } });
-setInterval(() => { if (games.length && storage.getItem(STORAGE_DATE_KEY) !== todayKey()) { resetIfNewDay(); refreshProgress(); renderClassic(); } }, 30000);
-function refreshClock() { $('#clock').textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }
-refreshClock(); setInterval(refreshClock, 30000);
+// Update existing nodes so background changes preserve focus and expanded groups.
+function syncProgress() {
+    resetIfNewDay();
+    refreshProgress();
+}
+window.addEventListener('storage', event => {
+    if (event.key === null || event.key?.startsWith('game-done') || event.key?.startsWith('game-streak:')) syncProgress();
+});
+window.addEventListener('focus', syncProgress);
+document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) syncProgress();
+});
+function refreshClock() {
+    const now = new Date();
+    $('#clock').dateTime = now.toISOString();
+    $('#clock').textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+refreshClock();
+setInterval(() => { syncProgress(); refreshClock(); }, 30000);
 resetIfNewDay();
 getData('website.json').then(render).catch(error => {
     console.error(error);
-    const status = $('#loading') || document.createElement('p');
+    const status = $('#loading');
+    status.hidden = false;
     status.textContent = 'Could not load games. Refresh the page to try again.';
     status.setAttribute('role', 'alert');
-    if (!status.isConnected) $('#stage').append(status);
 });
