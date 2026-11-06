@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="../Data/theme.js"></script>
+    <link rel="icon" href="../images/icon.png" type="image/png">
+    <link rel="stylesheet" href="../index.css">
+    <link rel="stylesheet" href="profile.css">
+    <title>Profile</title>
+</head>
+<body>
+
+    <header class="page-header">
+        <h1>Profile</h1>
+        <div class="header-right">
+            <a href="../index.html" class="back-link">Back to games</a>
+            <button id="theme-toggle" type="button">White mode</button>
+        </div>
+    </header>
+
+    <main class="profile-main">
+
+        <section class="profile-card">
+            <h2>Your info</h2>
+
+            <div class="avatar-row">
+                <img id="avatar-preview" class="avatar-large" alt="">
+                <div class="field">
+                    <label for="avatar-url">Avatar URL</label>
+                    <input type="url" id="avatar-url" placeholder="https://...">
+                </div>
+            </div>
+
+            <div class="field">
+                <label for="username">Username</label>
+                <input type="text" id="username" minlength="3" maxlength="20">
+            </div>
+
+            <button type="button" id="save-profile">Save</button>
+            <p id="profile-msg" class="msg"></p>
+        </section>
+
+        <section class="profile-card">
+            <h2>Change password</h2>
+            <div class="field">
+                <label for="new-password">New password</label>
+                <input type="password" id="new-password" minlength="6" autocomplete="new-password">
+            </div>
+            <button type="button" id="save-password">Update password</button>
+            <p id="password-msg" class="msg"></p>
+        </section>
+
+        <section class="profile-card">
+            <h2>Find friends</h2>
+            <div class="field">
+                <label for="friend-search">Search by username</label>
+                <input type="text" id="friend-search" placeholder="Type at least 2 characters…">
+            </div>
+            <ul id="search-results" class="search-results"></ul>
+        </section>
+
+        <section class="profile-card">
+            <button type="button" id="logout-btn" class="danger">Log out</button>
+        </section>
+
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script type="module" src="profile.js"></script>
+</body>
+</html>

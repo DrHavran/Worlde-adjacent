@@ -1,12 +1,10 @@
-import { isDone, setDone, resetIfNewDay } from './Data/cookies.js';
-
 import {
     getSession, getUser, getProfile,
-    submitCheckIn, fetchUserStats,
+    submitCheckIn, fetchUserStats, fetchFriendsForGame,
 } from './Data/integration.js';
 
 let currentUser = null;
-let userStats = new Map();    // game_url → { total_points, current_streak, done_today }
+let userStats = new Map();
 let websiteData = null;
 
 // ---------- data loading ----------
@@ -28,7 +26,6 @@ function escapeHtml(s) {
         '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
     }[c]));
 }
-
 async function renderUserArea() {
     const area = document.getElementById('user-area');
     if (!area) return;
@@ -50,10 +47,10 @@ async function renderUserArea() {
     const avatar  = profile?.avatar_url;
 
     area.innerHTML = `
-        <div class="user-badge">
+        <a href="ProfilePage/profile.html" class="user-badge" title="Edit profile">
             ${avatar ? `<img src="${escapeHtml(avatar)}" alt="">` : ''}
             <span>${escapeHtml(name)}</span>
-        </div>
+        </a>
     `;
 }
 
@@ -62,10 +59,10 @@ async function renderUserArea() {
 async function loadUserStats() {
     if (!currentUser) { userStats = new Map(); return; }
     userStats = await fetchUserStats(currentUser.id);
-    // mirror "done today" into localStorage so the popup stays suppressed
-    for (const [url, stat] of userStats) {
-        if (stat.done_today) setDone(url, true);
-    }
+}
+
+function isDoneToday(url) {
+    return userStats.get(url)?.done_today === true;
 }
 
 // ---------- points dialog ----------
@@ -75,13 +72,25 @@ const pointsForm   = document.getElementById('points-form');
 const pointsInput  = document.getElementById('points-input');
 const pointsTitle  = document.getElementById('points-title');
 const pointsCancel = document.getElementById('points-cancel');
+const pointsLabel  = document.getElementById('points-label');
 
 let pendingPoints = null;
 
-function openPointsDialog(url, name, onComplete) {
-    pendingPoints = { url, onComplete };
+function dialogLabelFor(label) {
+    if (!label) return 'points';
+    const t = String(label).trim();
+    if (!t) return 'points';
+    if (t.startsWith('/')) return 'score';
+    return t;
+}
+
+function openPointsDialog(url, name, label, max, onComplete) {
+    pendingPoints = { url, max, onComplete };
     pointsTitle.textContent = name;
+    pointsLabel.textContent = dialogLabelFor(label);
     pointsInput.value = '';
+    if (max != null) pointsInput.max = String(max);
+    else pointsInput.removeAttribute('max');
     pointsDialog.showModal();
     pointsInput.focus();
 }
@@ -98,19 +107,96 @@ pointsForm.addEventListener('submit', async (e) => {
     const points = parseInt(pointsInput.value, 10);
     if (!Number.isFinite(points) || points < 0) return;
 
-    const { url, onComplete } = pendingPoints;
+    const { url, max, onComplete } = pendingPoints;
+    if (max != null && points > max) {
+        alert(`Max for this game is ${max}.`);
+        return;
+    }
 
     try {
-        const result = await submitCheckIn(url, points);
-        setDone(url, true);
+        await submitCheckIn(url, points);
         pendingPoints = null;
         pointsDialog.close();
-        await onComplete?.(result);
+        await onComplete?.();
     } catch (err) {
         console.error('check_in failed:', err);
         alert(err.message || 'Failed to save points');
     }
 });
+
+// ---------- friends dialog ----------
+
+const friendsDialog    = document.getElementById('friends-dialog');
+const friendsList      = document.getElementById('friends-list');
+const friendsGameTitle = document.getElementById('friends-game-title');
+
+document.addEventListener('click', (e) => {
+    const t = e.target;
+    if (t instanceof Element && t.closest('#friends-close')) {
+        e.preventDefault();
+        if (friendsDialog) friendsDialog.close();
+    }
+});
+
+if (friendsDialog) {
+    friendsDialog.addEventListener('click', (e) => {
+        if (e.target === friendsDialog) friendsDialog.close();
+    });
+}
+
+async function openFriendsDialog(gameName, gameUrl, label) {
+    if (!friendsDialog) {
+        alert('Friends dialog missing from index.html');
+        return;
+    }
+
+    friendsGameTitle.textContent = gameName;
+    friendsList.innerHTML = '<li class="friend-row muted">Loading…</li>';
+    friendsDialog.showModal();
+
+    try {
+        const friends = await fetchFriendsForGame(gameUrl);
+
+        if (!friends.length) {
+            friendsList.innerHTML = '<li class="friend-row muted">No friends yet.</li>';
+            return;
+        }
+
+        friends.sort((a, b) => {
+            if (a.played !== b.played) return a.played ? -1 : 1;
+            if (a.played && b.played) {
+                const diff = (b.points ?? 0) - (a.points ?? 0);
+                if (diff !== 0) return diff;
+            }
+            return a.username.localeCompare(b.username);
+        });
+
+        friendsList.innerHTML = friends.map(f => {
+            const streakClass = f.played ? 'hot' : 'zero';
+            const pointsHtml = f.played
+                ? `<span class="friend-points">${f.points}${label}</span>`
+                : `<span class="friend-points muted">didn't play today</span>`;
+            const avatarHtml = f.avatar_url
+                ? `<img class="friend-avatar" src="${escapeHtml(f.avatar_url)}" alt="">`
+                : `<div class="friend-avatar friend-avatar-empty"></div>`;
+            const selfBadge = f.isSelf ? ' <span class="friend-self">(you)</span>' : '';
+            return `
+                <li class="friend-row${f.isSelf ? ' friend-row-self' : ''}">
+                    ${avatarHtml}
+                    <span class="friend-name">${escapeHtml(f.username)}${selfBadge}</span>
+                    ${pointsHtml}
+                    <span class="card-streak ${streakClass}">
+                        <img class="streak-icon" src="https://cdn-icons-png.flaticon.com/256/8722/8722283.png" alt="">
+                        <span class="streak-count">${f.streak}</span>
+                    </span>
+                </li>
+            `;
+        }).join('');
+    } catch (err) {
+        console.error('[friends] fetch failed:', err);
+        friendsList.innerHTML = `<li class="friend-row muted">${escapeHtml(err.message || 'Failed to load friends')}</li>`;
+    }
+}
 
 // ---------- one game card ----------
 
@@ -119,7 +205,10 @@ function createCard(name, entry) {
     const thumb = typeof entry === "string" ? ""    : (entry.thumb || "");
     const label = (typeof entry === "object" && entry.label !== undefined)
         ? entry.label
-        : "pts";
+        : " pts";
+    const max   = (typeof entry === "object" && entry.max !== undefined)
+        ? entry.max
+        : null;
 
     const li = document.createElement("li");
     li.className = "game-card";
@@ -133,14 +222,13 @@ function createCard(name, entry) {
 
     link.addEventListener('click', () => {
         if (!currentUser) return;
-        if (isDone(url)) return;
-        openPointsDialog(url, name, async () => {
+        if (isDoneToday(url)) return;
+        openPointsDialog(url, name, label, max, async () => {
             await loadUserStats();
             if (websiteData) render(websiteData);
         });
     });
 
-    // thumbnail
     const thumbWrap = document.createElement("div");
     thumbWrap.className = "thumb-wrap";
 
@@ -162,58 +250,72 @@ function createCard(name, entry) {
         thumbWrap.appendChild(makePlaceholder());
     }
 
-    // title
     const title = document.createElement("span");
     title.className = "card-title";
     title.textContent = name;
 
-        // footer: title (+ points + streak if logged in)
-        const footer = document.createElement("div");
-        footer.className = "card-footer";
-        footer.appendChild(title);
-    
-        if (currentUser) {
-            const stat = userStats.get(url);
-    
-            // points — only render once the user has logged a score
-            if (stat) {
-                const pointsEl = document.createElement("span");
-                pointsEl.className = "card-points";
-                pointsEl.textContent = label
-                    ? `${stat.total_points}${label}`
-                    : String(stat.total_points);
-                footer.appendChild(pointsEl);
-            }
-    
-            // streak — still shown (0 with grey flame if never played)
-            const streakStat = stat ?? { current_streak: 0, done_today: false };
-    
-            const streakEl = document.createElement("span");
-            streakEl.className = "card-streak";
-    
-            const icon = document.createElement("img");
-            icon.className = "streak-icon";
-            icon.src = "https://cdn-icons-png.flaticon.com/256/8722/8722283.png";
-            icon.alt = "";
-    
-            const count = document.createElement("span");
-            count.className = "streak-count";
-            count.textContent = streakStat.current_streak;
-    
-            streakEl.classList.toggle("zero",    streakStat.current_streak === 0);
-            streakEl.classList.toggle("hot",     streakStat.done_today);
-            streakEl.classList.toggle("at-risk", streakStat.current_streak > 0 && !streakStat.done_today);
-    
-            streakEl.appendChild(icon);
-            streakEl.appendChild(count);
-            footer.appendChild(streakEl);
+    const footer = document.createElement("div");
+    footer.className = "card-footer";
+    footer.appendChild(title);
+
+    if (currentUser) {
+        const stat = userStats.get(url) ?? { today_points: null, current_streak: 0, done_today: false };
+
+        if (stat.today_points !== null) {
+            const pointsEl = document.createElement("span");
+            pointsEl.className = "card-points";
+            pointsEl.textContent = `${stat.today_points}${label}`;
+            footer.appendChild(pointsEl);
         }
 
-    li.classList.toggle("done", currentUser && isDone(url));
+        const streakEl = document.createElement("span");
+        streakEl.className = "card-streak";
+
+        const icon = document.createElement("img");
+        icon.className = "streak-icon";
+        icon.src = "https://cdn-icons-png.flaticon.com/256/8722/8722283.png";
+        icon.alt = "";
+
+        const count = document.createElement("span");
+        count.className = "streak-count";
+        count.textContent = stat.current_streak;
+
+        streakEl.classList.toggle("zero",    stat.current_streak === 0);
+        streakEl.classList.toggle("hot",     stat.done_today);
+        streakEl.classList.toggle("at-risk", stat.current_streak > 0 && !stat.done_today);
+
+        streakEl.appendChild(icon);
+        streakEl.appendChild(count);
+        footer.appendChild(streakEl);
+    }
+
+    li.classList.toggle("done", currentUser && isDoneToday(url));
 
     li.appendChild(link);
     li.appendChild(thumbWrap);
     li.appendChild(footer);
+
+    if (currentUser) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "card-friends-btn";
+        btn.setAttribute("aria-label", `Friends playing ${name}`);
+
+        const btnIcon = document.createElement("img");
+        btnIcon.src = "images/frienddIcon.png";
+        btnIcon.alt = "friends";
+        btnIcon.onerror = () => { btn.textContent = '👥'; };
+        btn.appendChild(btnIcon);
+
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            openFriendsDialog(name, url, label);
+        });
+
+        li.appendChild(btn);
+    }
+
     return li;
 }
 
@@ -261,8 +363,6 @@ function render(data) {
 }
 
 // ---------- kick off ----------
-
-resetIfNewDay();
 
 (async () => {
     await renderUserArea();

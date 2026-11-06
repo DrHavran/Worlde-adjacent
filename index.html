@@ -5,12 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="Data/theme.js"></script>
     <link rel="stylesheet" href="index.css">
-
-    <link
-        rel="icon"
-        href="https://instagram.fprg4-1.fna.fbcdn.net/v/t51.2885-19/356797343_266025052791994_3279393702243699207_n.jpg?stp=dst-jpg_s206x206_tt6&_nc_cat=103&_nc_map=urlgen_bucketless&ccb=7-5&_nc_sid=bf7eb4&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLnd3dy4zNTIuQzMifQ%3D%3D&_nc_ohc=vOgHFlj0FZgQ7kNvwEq-fSQ&_nc_oc=Adq56HOMnlhqtTb-AfTY3JJeTI5Z-LfPQ8uwzhAh7MjGwlAx9Z858LIgwIfGvlV7ypE&_nc_zt=24&_nc_ht=instagram.fprg4-1.fna&_nc_ss=7b6a8&oh=00_AQTlYXwyQKf9v2VhOBT-4I3sQi-UZkeHatfVJWio3dGXkg&oe=6AEC0275"
-        type="image/x-icon"
-    >
+    <link rel="icon" href="images/icon.png" type="image/png">
     <title>Worlde adjacent games</title>
 </head>
 <body>
@@ -28,13 +23,21 @@
     <dialog id="points-dialog">
         <form id="points-form">
             <h2 id="points-title"></h2>
-            <label for="points-input">Points</label>
+            <label for="points-input" id="points-label">points</label>
             <input type="number" id="points-input" min="0" required>
             <div class="dialog-buttons">
-                <button type="button" id="points-cancel">Cancel</button>
                 <button type="submit">Save</button>
+                <button type="button" id="points-cancel">Cancel</button>
             </div>
         </form>
+    </dialog>
+
+    <dialog id="friends-dialog">
+        <h2>Friends — <span id="friends-game-title"></span></h2>
+        <ol id="friends-list"></ol>
+        <div class="dialog-buttons">
+            <button type="button" id="friends-close">Close</button>
+        </div>
     </dialog>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

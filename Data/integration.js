@@ -1,5 +1,3 @@
-// Log in
-
 export const supabase = window.supabase.createClient(
     'https://lcwnjnjzhaccskqyhyjp.supabase.co',
     'sb_publishable_NE-iEaxSEAjSbnX1fcx4iw_7wt3F_90'
@@ -20,7 +18,6 @@ export async function getSession() {
     return data.session;
 }
 
-// User profile
 export async function getUser() {
     const { data } = await supabase.auth.getUser();
     return data.user;
@@ -47,7 +44,6 @@ export async function submitCheckIn(gameUrl, points) {
     });
 
     if (error) {
-        // 23505 = unique_violation → already checked in today
         if (error.code === '23505') return { already: true };
         throw error;
     }
@@ -66,19 +62,128 @@ export async function fetchUserStats(userId) {
     if (checkInsRes.error) throw checkInsRes.error;
     if (streaksRes.error)   throw streaksRes.error;
 
-    const today = new Date().toISOString().slice(0, 10);
+    const d = new Date();
+    const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
     const stats = new Map();
 
     for (const row of checkInsRes.data ?? []) {
-        const e = stats.get(row.game_url) ?? { total_points: 0, current_streak: 0, done_today: false };
-        e.total_points += row.points;
-        if (row.checked_on === today) e.done_today = true;
+        const e = stats.get(row.game_url) ?? { today_points: null, current_streak: 0, done_today: false };
+        if (row.checked_on === today) {
+            e.today_points = row.points;
+            e.done_today   = true;
+        }
         stats.set(row.game_url, e);
     }
     for (const row of streaksRes.data ?? []) {
-        const e = stats.get(row.game_url) ?? { total_points: 0, current_streak: 0, done_today: false };
+        const e = stats.get(row.game_url) ?? { today_points: null, current_streak: 0, done_today: false };
         e.current_streak = row.current_streak;
         stats.set(row.game_url, e);
     }
-    return stats;   // Map<game_url, { total_points, current_streak, done_today }>
+    return stats;
+}
+
+export async function fetchFriendsForGame(gameUrl) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return [];
+
+    // followers of me → friend ids. No FK join, so no schema-cache dependency.
+    const { data: follows, error: fErr } = await supabase
+        .from('follows')
+        .select('followee_id')
+        .eq('follower_id', user.id);
+    if (fErr) throw fErr;
+
+    const friendIds = follows?.map(f => f.followee_id) ?? [];
+    const allIds = [user.id, ...friendIds];   // self + friends
+
+    const d = new Date();
+    const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+    const [profilesRes, todayRes, streakRes] = await Promise.all([
+        supabase.from('profiles')
+            .select('id, username, avatar_url')
+            .in('id', allIds),
+        supabase.from('check_ins')
+            .select('user_id, points')
+            .eq('game_url', gameUrl)
+            .eq('checked_on', today)
+            .in('user_id', allIds),
+        supabase.from('current_streaks')
+            .select('user_id, current_streak')
+            .eq('game_url', gameUrl)
+            .in('user_id', allIds),
+    ]);
+    if (profilesRes.error) throw profilesRes.error;
+    if (todayRes.error)    throw todayRes.error;
+    if (streakRes.error)   throw streakRes.error;
+
+    const profileMap = new Map((profilesRes.data ?? []).map(p => [p.id, p]));
+    const todayMap   = new Map((todayRes.data   ?? []).map(r => [r.user_id, r.points]));
+    const streakMap  = new Map((streakRes.data  ?? []).map(r => [r.user_id, r.current_streak]));
+
+    return allIds
+        .map(id => {
+            const profile = profileMap.get(id);
+            if (!profile) return null;
+            const played = todayMap.has(id);
+            return {
+                user_id:    id,
+                username:   profile.username,
+                avatar_url: profile.avatar_url,
+                played,
+                points:     played ? todayMap.get(id) : null,
+                streak:     streakMap.get(id) ?? 0,
+                isSelf:     id === user.id,
+            };
+        })
+        .filter(Boolean);
+}
+
+export async function updateProfile(userId, updates) {
+    const { error } = await supabase
+        .from('profiles')
+        .update(updates)
+        .eq('id', userId);
+    if (error) throw error;
+}
+
+export async function updatePassword(newPassword) {
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) throw error;
+}
+
+export async function searchUsers(query) {
+    const { data, error } = await supabase
+        .from('profiles')
+        .select('id, username, avatar_url')
+        .ilike('username', `%${query}%`)
+        .limit(20);
+    if (error) throw error;
+    return data || [];
+}
+
+export async function getFollowing(userId) {
+    const { data, error } = await supabase
+        .from('follows')
+        .select('followee_id')
+        .eq('follower_id', userId);
+    if (error) throw error;
+    return new Set((data ?? []).map(r => r.followee_id));
+}
+
+export async function follow(followerId, followeeId) {
+    const { error } = await supabase
+        .from('follows')
+        .insert({ follower_id: followerId, followee_id: followeeId });
+    if (error && error.code !== '23505') throw error;
+}
+
+export async function unfollow(followerId, followeeId) {
+    const { error } = await supabase
+        .from('follows')
+        .delete()
+        .eq('follower_id', followerId)
+        .eq('followee_id', followeeId);
+    if (error) throw error;
 }

@@ -4,77 +4,88 @@
 			"Wordle": {
 				"url": "https://nytimes.com/games/wordle/index.html",
 				"thumb": "https://www.nytimes.com/games-assets/v2/assets/wordle/wordle_og_1200x630.png",
-				"label": " guesses"
+				"label": " guesses",
+				"max": 6
 			}
 		},
 		{
 			"Travle": {
 				"url": "https://travle.earth",
 				"thumb": "https://travle.earth/images/previews/countries_preview.png",
-				"label": " guesses"
+				"label": " guesses",
+				"max": 197
 			}
 		},
 		{
 			"Globle": {
 				"url": "https://globle-game.com/game",
 				"thumb": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRBogbnNKOwYODwR7OS6YSt7s6limFjTUlh13jvAX63tnFBsJ5uNc1mGNdy&s=10",
-				"label": " guesses"
+				"label": " guesses",
+				"max": 30
 			}
 		},
 		{
 			"Worldle": {
 				"url": "https://worldle.teuteuf.fr",
 				"thumb": "https://worldle.teuteuf.fr/og-image.jpg",
-				"label": "/6"
+				"label": "/6",
+				"max": 6
 			}
 		},
 		{
 			"Krillion": {
 				"url": "https://krillion.io",
 				"thumb": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS6DafcWj-Yu_pCkPzP7I62LB5A99FHuQSiIFjTWE9TktGIs3g72S0ELKK4&s=10",
-				"label": " pts"
+				"label": " points",
+				"max": 700
 			}
 		},
 		{
 			"Noillirk": {
 				"url": "https://playdaily.org/noillirk",
 				"thumb": "https://noillirkgame.io//data/image/game/noillirk-banner.jpg",
-				"label": " pts"
+				"label": " points",
+				"max": 700
 			}
 		},
 		{
 			"Farflung": {
 				"url": "https://farflunggame.com",
 				"thumb": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS_iHdu9y3zBbJWbcozEocTXwvYnqlHYGPEjMhoY_ak0e9ia3xlfNCiXPm3&s=10",
-				"label": " pts"
+				"label": " points",
+				"max": 500
 			}
 		},
 		{
 			"Moonshot": {
 				"url": "https://moonshotdailygame.com",
 				"thumb": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSg9OTdGHcUnC1N7Ows5pI1gTGbv9i9e3YAa7rGQl8A1w&s",
-				"label": " pts"
+				"label": " points",
+				"max": 20000
 			}
 		},
 		{
 			"Eraly": {
 				"url": "https://eraly.io/",
 				"thumb": "https://clueffy.games/covers/eraly-unlimited.jpg",
-				"label": " pts"
+				"label": " points",
+				"max": 700
 			}
 		},
 		{
 			"TypeRacer": {
 				"url": "https://play.typeracer.com",
 				"thumb": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcReQOXOSofRQ7Eg0HV6b8bfXI6ulkR6pYqMRlFFJkHFCpaBe1F_4N8SeRow&s=10",
-				"label": " wpm"
+				"label": " wpm",
+				"max": 300
 			}
 		},
 		{
 			"Connections": {
 				"url": "https://www.nytimes.com/games/connections",
 				"thumb": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQwnEnQr_GKF2jeTDk3TmrSs1UjaCeLbw5u60heObMwzA&s=10",
-				"label": "mistakes"
+				"label": " mistakes",
+				"max": 4
 			}
 		}
 	],
@@ -83,63 +94,72 @@
 			"Countries of the World": {
 				"url": "https://sporcle.com/games/g/world",
 				"thumb": "images/countries-world.png",
-				"label": "/197"
+				"label": "/197",
+				"max": 197
 			}
 		},
 		{
 			"Countries of Europe": {
 				"url": "https://sporcle.com/games/g/europe",
 				"thumb": "images/countries-europe.png",
-				"label": "/47"
+				"label": "/47",
+				"max": 47
 			}
 		},
 		{
 			"Capitals of Europe": {
 				"url": "https://sporcle.com/games/g/europecapitals",
 				"thumb": "images/capitals-europe.png",
-				"label": "/47"
+				"label": "/47",
+				"max": 47
 			}
 		},
 		{
 			"Countries of Asia": {
 				"url": "https://sporcle.com/games/g/asia",
 				"thumb": "images/countries-asia.png",
-				"label": "/49"
+				"label": "/49",
+				"max": 49
 			}
 		},
 		{
 			"Capitals of Asia": {
 				"url": "https://sporcle.com/games/g/asiacapitals",
 				"thumb": "images/capitals-asia.png",
-				"label": "/49"
+				"label": "/49",
+				"max": 49
 			}
 		},
 		{
 			"Countries of South America": {
 				"url": "https://sporcle.com/games/g/southamerica",
 				"thumb": "images/countries-south-america.png",
-				"label": "/12"
+				"label": "/12",
+				"max": 12
 			}
 		},
 		{
 			"Countries of Africa": {
 				"url": "https://sporcle.com/games/g/africa",
 				"thumb": "images/countries-africa.png",
-				"label": "/54"
+				"label": "/54",
+				"max": 54
 			}
 		},
 		{
 			"Countries of North America": {
 				"url": "https://sporcle.com/games/g/northamerica",
 				"thumb": "images/countries-north-america.png",
-				"label": "/23"
+				"label": "/23",
+				"max": 23
 			}
 		},
 		{
 			"Countries of Oceania": {
 				"url": "https://sporcle.com/games/g/oceania",
 				"thumb": "images/countries-oceania.png",
-				"label": "/14"
+				"label": "/14",
+				"max": 14
 			}
 		}
 	],
@@ -148,49 +168,56 @@
 			"Flags of the World": {
 				"url": "https://sporcle.com/games/g/worldflags",
 				"thumb": "images/flags-world.png",
-				"label": "/197"
+				"label": "/197",
+				"max": 197
 			}
 		},
 		{
 			"Flags of Europe": {
 				"url": "https://sporcle.com/games/g/europeflags",
 				"thumb": "images/flags-europe.png",
-				"label": "/47"
+				"label": "/47",
+				"max": 47
 			}
 		},
 		{
 			"Flags of Asia": {
 				"url": "https://sporcle.com/games/g/asiaflags",
 				"thumb": "images/flags-asia.png",
-				"label": "/49"
+				"label": "/49",
+				"max": 49
 			}
 		},
 		{
 			"Flags of Africa": {
 				"url": "https://sporcle.com/games/g/africaflags",
 				"thumb": "images/flags-africa.png",
-				"label": "/54"
+				"label": "/54",
+				"max": 54
 			}
 		},
 		{
 			"Flags of North America": {
 				"url": "https://sporcle.com/games/g/northamericaflags",
 				"thumb": "images/flags-north-america.png",
-				"label": "/23"
+				"label": "/23",
+				"max": 23
 			}
 		},
 		{
 			"Flags of South America": {
 				"url": "https://sporcle.com/games/g/southamericaflags",
 				"thumb": "images/flags-south-america.png",
-				"label": "/12"
+				"label": "/12",
+				"max": 12
 			}
 		},
 		{
 			"Flags of Oceania": {
 				"url": "https://sporcle.com/games/g/oceaniaflags",
 				"thumb": "images/flags-oceania.png",
-				"label": "/14"
+				"label": "/14",
+				"max": 14
 			}
 		}
 	]
