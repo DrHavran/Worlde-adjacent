@@ -1,7 +1,7 @@
 import {
     getSession, getUser, getProfile,
     updateProfile, updatePassword, searchUsers,
-    getFollowing, follow, unfollow, logout,
+    getFollowing, fetchFollowedProfiles, follow, unfollow, logout,
 } from '../Data/integration.js';
 
 let currentUser = null;
@@ -19,6 +19,7 @@ const passwordMsg     = document.getElementById('password-msg');
 
 const searchInput   = document.getElementById('friend-search');
 const searchResults = document.getElementById('search-results');
+const friendsList   = document.getElementById('friends-list');
 
 const logoutBtn     = document.getElementById('logout-btn');
 
@@ -48,6 +49,40 @@ function updateAvatarPreview(url) {
     }
 }
 
+function rowHtml(user, actionLabel, actionClass) {
+    const avatar = user.avatar_url
+        ? `<img class="result-avatar" src="${escapeHtml(user.avatar_url)}" alt="">`
+        : `<div class="result-avatar result-avatar-empty"></div>`;
+    return `
+        <li class="result-row">
+            ${avatar}
+            <span class="result-name">${escapeHtml(user.username)}</span>
+            <button type="button"
+                    class="result-btn ${actionClass}"
+                    data-id="${user.id}">
+                ${actionLabel}
+            </button>
+        </li>`;
+}
+
+// ---------- friends list (already followed) ----------
+
+async function renderFriendsList() {
+    friendsList.innerHTML = '<li class="result-muted">Loading…</li>';
+    try {
+        const friends = await fetchFollowedProfiles(currentUser.id);
+        if (!friends.length) {
+            friendsList.innerHTML = '<li class="result-muted">No friends yet — search above to add some.</li>';
+            return;
+        }
+        friendsList.innerHTML = friends
+            .map(f => rowHtml(f, 'Unfollow', 'following'))
+            .join('');
+    } catch (err) {
+        friendsList.innerHTML = `<li class="result-muted">${escapeHtml(err.message || 'Failed to load friends')}</li>`;
+    }
+}
+
 // ---------- init ----------
 
 async function init() {
@@ -66,6 +101,7 @@ async function init() {
     }
 
     following = await getFollowing(currentUser.id);
+    await renderFriendsList();
 }
 
 // ---------- profile ----------
@@ -135,28 +171,16 @@ async function doSearch(query) {
         }
         searchResults.innerHTML = others.map(u => {
             const isFollowing = following.has(u.id);
-            const avatar = u.avatar_url
-                ? `<img class="result-avatar" src="${escapeHtml(u.avatar_url)}" alt="">`
-                : `<div class="result-avatar result-avatar-empty"></div>`;
-            return `
-                <li class="result-row">
-                    ${avatar}
-                    <span class="result-name">${escapeHtml(u.username)}</span>
-                    <button type="button"
-                            class="result-btn ${isFollowing ? 'following' : ''}"
-                            data-id="${u.id}">
-                        ${isFollowing ? 'Following' : 'Follow'}
-                    </button>
-                </li>`;
+            return rowHtml(u, isFollowing ? 'Following' : 'Follow', isFollowing ? 'following' : '');
         }).join('');
     } catch (err) {
         searchResults.innerHTML = `<li class="result-muted">${escapeHtml(err.message || 'Search failed')}</li>`;
     }
 }
 
-searchResults.addEventListener('click', async (e) => {
-    const btn = e.target.closest('.result-btn');
-    if (!btn) return;
+// ---------- follow / unfollow (shared handler for both lists) ----------
+
+async function toggleFollow(btn) {
     const id = btn.dataset.id;
     const isFollowing = following.has(id);
     btn.disabled = true;
@@ -172,11 +196,25 @@ searchResults.addEventListener('click', async (e) => {
             btn.textContent = 'Following';
             btn.classList.add('following');
         }
+        await renderFriendsList();
+        // refresh search results so buttons reflect new state
+        const q = searchInput.value.trim();
+        if (q.length >= 2) await doSearch(q);
     } catch (err) {
         alert(err.message || 'Failed to update follow');
     } finally {
         btn.disabled = false;
     }
+}
+
+searchResults.addEventListener('click', (e) => {
+    const btn = e.target.closest('.result-btn');
+    if (btn) toggleFollow(btn);
+});
+
+friendsList.addEventListener('click', (e) => {
+    const btn = e.target.closest('.result-btn');
+    if (btn) toggleFollow(btn);
 });
 
 // ---------- logout ----------

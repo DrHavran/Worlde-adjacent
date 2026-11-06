@@ -187,3 +187,22 @@ export async function unfollow(followerId, followeeId) {
         .eq('followee_id', followeeId);
     if (error) throw error;
 }
+
+export async function fetchFollowedProfiles(userId) {
+    const { data: follows, error: fErr } = await supabase
+        .from('follows')
+        .select('followee_id')
+        .eq('follower_id', userId);
+    if (fErr) throw fErr;
+    if (!follows?.length) return [];
+
+    const ids = follows.map(f => f.followee_id);
+    const { data: profiles, error: pErr } = await supabase
+        .from('profiles')
+        .select('id, username, avatar_url')
+        .in('id', ids);
+    if (pErr) throw pErr;
+
+    const order = new Map(ids.map((id, i) => [id, i]));
+    return (profiles ?? []).sort((a, b) => order.get(a.id) - order.get(b.id));
+}

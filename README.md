@@ -4,4 +4,3 @@ Simple home page for all the worlde adjacent games, since what the fuck else we 
 
 TODO:
 Make a register page
-Make a change password page
