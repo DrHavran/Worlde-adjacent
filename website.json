@@ -121,6 +121,12 @@
 				"url": "https://sporcle.com/games/g/oceania",
 				"thumb": "images/countries-oceania.png"
 			}
+		},
+		{
+			"Countries by shape": {
+				"url": "https://www.jetpunk.com/user-quizzes/6121/every-country-shape",
+				"thumb": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTlgTOHlrgGMu9cvEThKQnwWe1h3gkz_axbh5ylZ20nOw&s=10"
+			}
 		}
 	],
 	"Flags": [
