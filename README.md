@@ -6,7 +6,8 @@ This app allows you to log in, submit your scores and compare how well you did t
 
 The backend is using free supabase tier with PostgresDB
 
+DEV NOTE:
+If we ever add more themes, the system will be have to reworked to use injections!!!
+
 TODO:
-Implement themes from Otep [Playground] branch
-Clean up profile code
 Allow user to upload their PFP, instead of having to provide a url

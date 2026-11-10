@@ -1,238 +1,155 @@
-/* Page-specific styles for index.html.
-   Palette, font, header live in base.css. */
-
-/* ============================================================
-   PAGE LAYOUT
-   ============================================================ */
-
-   .sections {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 1.25rem 3rem;
+/* Shared shell and state for the Modern and Original layouts. */
+:root {
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    color-scheme:dark;
+    --ink:#f5f5f7;
+    --muted:#a0a2ad;
+    --panel:#24262f;
+    --line:#3d4049;
 }
 
-.sections section { margin-bottom: 2.5rem; }
+:root[data-theme="light"] {
+    color-scheme: light;
+    --ink: #1c1d23;
+    --muted: #6b6d78;
+    --panel: #ffffff;
+    --line: #d4d8e3;
+}
 
-.sections h2 {
-    margin: 0 0 1rem;
-    font-size: 1.35rem;
+* { box-sizing:border-box; }
+body { margin:0; min-height:100vh; }
+a { color:inherit; text-decoration:none; }
+button, select, input { font:inherit; }
+button, select { color:inherit; cursor:pointer; }
+button:disabled { cursor:default; }
+[hidden] { display:none!important; }
+a:focus-visible, button:focus-visible, select:focus-visible { outline:2px solid currentColor; outline-offset:4px; }
+.dashboard-header { display:flex; align-items:center; justify-content:space-between; gap:24px; padding:24px 5vw; }
+h1.wordmark {
+    font-size: 17px;
     font-weight: 600;
-    letter-spacing: -0.01em;
-}
-
-
-/* ============================================================
-   CARD GRID
-   ============================================================ */
-
-.card-grid {
-    list-style: none;
-    padding: 0;
+    letter-spacing: -.4px;
     margin: 0;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
-    gap: 1rem;
+    line-height: 1.2;
 }
+h1.wordmark a { color: inherit; text-decoration: none; }
+.header-tools { display:flex; align-items:center; flex-wrap:wrap; justify-content:flex-end; gap:14px; }
+.design-choice, .remember-design { display:flex; align-items:center; gap:7px; font-size:12px; }
+.design-choice select { padding:8px; color:var(--ink); background:var(--panel); border:1px solid var(--line); border-radius:7px; }
+.remember-design input { width:16px; height:16px; }
+.search-trigger { display:flex; align-items:center; gap:10px; padding:8px 12px; font-size:12px; color:inherit; background:var(--panel); border:1px solid var(--line); border-radius:7px; }
+.search-trigger:hover { border-color: var(--ink); }
+kbd { font:inherit; font-size:11px; padding:2px 5px; border:1px solid var(--line); border-radius:4px; }
+.channels { display:flex; }
+.channel { border:0; background:none; cursor:pointer; }
+.library-heading { display:flex; align-items:center; justify-content:space-between; }
+.stage { position:relative; }
+.tiles { position:relative; }
+.game-tile { display:block; color:inherit; }
+.game-tile::after { content:''; position:absolute; inset:0; opacity:0; z-index:2; pointer-events:none; transition:opacity .35s ease; border-radius:inherit; }
+.game-tile.completed::after { opacity:1; }
+.tile-cover { position:absolute; opacity:1; z-index:1; }
+.tile-monogram { position:absolute; left:50%; transform:translate(-50%,-50%); }
+.has-cover .tile-monogram { display:none; }
+.tile-done { position:absolute; z-index:3; }
+.selection-actions { display:flex; align-items:center; }
+.play-button, #complete-game { display:flex; align-items:center; gap:9px; }
+.play-button[aria-disabled="true"], #complete-game:disabled { opacity:.4; pointer-events:none; }
+.shelf-controls { display:flex; align-items:center; }
+.progress-track { height:2px; margin-right:auto; }
+.progress-track span { display:block; height:100%; transition:width .25s ease; }
 
-.card-grid > li.category { grid-column: 1 / -1; }
-
-.card-grid details > summary {
+/* theme toggle — in the header, same look as design select + search button */
+#theme-toggle {
+    min-height: 32px;
+    padding: 8px 12px;
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    background: var(--panel);
+    color: var(--ink);
+    font: inherit;
+    font-size: 12px;
+    line-height: 1;
     cursor: pointer;
-    padding: .4rem 0;
-    font-weight: 600;
-    margin-bottom: .5rem;
+}
+
+#theme-toggle:hover { border-color: var(--ink); }
+
+.modern-art, .controls-guide { display:none; }
+.sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+#search-bar { position:fixed; bottom:0; left:0; right:0; z-index:200; display:flex; align-items:center; gap:14px; padding:18px 5vw; background:var(--panel); color:var(--ink); border-top:1px solid var(--line); }
+#search-bar label { font-size:25px; }
+#game-search { min-width:0; flex:1; width:100%; color:inherit; background:none; border:0; outline:none; padding:8px 0; font-size:18px; }
+#game-search::placeholder { color:var(--muted); }
+#search-count, #search-hint { font-size:11px; white-space:nowrap; }
+#close-search { color:inherit; border:1px solid var(--line); background:none; border-radius:3px; padding:5px 8px; font-size:12px; }
+#empty-results { padding:30px 0; }
+#loading, .page-message { margin:24px 5vw; }
+body:has(#search-bar:not([hidden])) { padding-bottom:100px; }
+:root[data-design="classic"] #dashboard,
+:root[data-design="modern"] #classic { display:none; }
+@media(max-width:900px) {
+    .dashboard-header { flex-wrap:wrap; }
+    .header-tools { justify-content:flex-start; }
+}
+@media(max-width:700px) {
+    .wordmark { font-size:16px; }
+    .header-tools { width:100%; gap:12px; }
+    .design-choice, .remember-design { font-size:11px; }
+    #search-hint { display:none; }
+    #search-bar { gap:10px; padding:12px 5vw; }
+    #game-search { font-size:16px; }
+}
+@media(prefers-reduced-motion:reduce) {
+    *, *::before, *::after { transition:none!important; animation:none!important; scroll-behavior:auto!important; }
 }
 
 
 /* ============================================================
-   CARD
-   ============================================================ */
-
-.game-card {
-    position: relative;
-    list-style: none;
-    padding: 0;
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    overflow: hidden;
-    transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
-}
-
-.game-card:hover {
-    transform: translateY(-2px);
-    border-color: var(--accent);
-    box-shadow: 0 8px 22px var(--shadow);
-}
-
-.card-link {
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    border-radius: inherit;
-}
-
-
-/* ============================================================
-   THUMBNAIL
-   ============================================================ */
-
-.thumb-wrap {
-    display: block;
-    width: 100%;
-    aspect-ratio: 16 / 9;
-    overflow: hidden;
-    background: var(--thumb);
-    line-height: 0;
-    font-size: 0;
-}
-
-.thumb {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: fill;
-}
-
-.thumb.placeholder {
-    display: block;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(135deg, var(--thumb), var(--card));
-}
-
-
-/* ============================================================
-   FOOTER
-   ============================================================ */
-
-.card-footer {
-    display: flex;
-    align-items: center;
-    gap: .55rem;
-    padding: .6rem .75rem;
-    position: relative;
-    z-index: 1;
-    pointer-events: none;
-}
-
-.card-title {
-    font-size: .9rem;
-    font-weight: 500;
-    line-height: 1.3;
-    color: var(--text);
-    flex: 1;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-
-/* ============================================================
-   DONE STATE
-   ============================================================ */
-
-.game-card.done .thumb-wrap,
-.game-card.done .card-title {
-    opacity: .5;
-    filter: grayscale(.4);
-}
-
-.game-card.done .card-title { text-decoration: line-through; }
-
-
-/* ============================================================
-   STREAK + POINTS BADGES
-   ============================================================ */
-
-.card-streak {
-    display: inline-flex;
-    align-items: center;
-    gap: .22rem;
-    flex-shrink: 0;
-    padding: .14rem .5rem .14rem .3rem;
-    border-radius: 999px;
-    background: var(--subtle);
-    border: 1px solid var(--badge-border);
-    font-size: .74rem;
-    font-weight: 700;
-    line-height: 1;
-    color: var(--text);
-    font-variant-numeric: tabular-nums;
-    transition: box-shadow .15s ease, opacity .15s ease;
-}
-
-.card-streak .streak-icon {
-    display: block;
-    width: .95rem;
-    height: .95rem;
-    object-fit: contain;
-}
-
-.card-streak.zero { opacity: .5; }
-.card-streak.zero .streak-icon { filter: grayscale(1); }
-.card-streak.at-risk { box-shadow: 0 0 0 1px rgba(245, 158, 11, .55); }
-.card-streak.hot     { box-shadow: 0 0 0 1px rgba(34, 197, 94, .55); }
-
-@keyframes streak-bump {
-    0%   { transform: scale(1); }
-    45%  { transform: scale(1.18); }
-    100% { transform: scale(1); }
-}
-.card-streak.bump { animation: streak-bump .35s ease; }
-
-.card-points {
-    display: inline-flex;
-    align-items: center;
-    flex-shrink: 0;
-    padding: .14rem .55rem;
-    border-radius: 999px;
-    background: var(--subtle);
-    border: 1px solid var(--badge-border);
-    font-size: .74rem;
-    font-weight: 700;
-    line-height: 1;
-    color: var(--text);
-    font-variant-numeric: tabular-nums;
-}
-
-
-/* ============================================================
-   USER BADGE (header — index only)
+   USER AREA (in dashboard-header)
    ============================================================ */
 
 .user-badge {
     display: flex;
     align-items: center;
     gap: .5rem;
+    color: inherit;
+    font-size: 13px;
 }
 
 .user-badge img {
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     object-fit: cover;
 }
 
-a.user-badge {
-    text-decoration: none;
-    color: inherit;
+a.user-badge:hover span { text-decoration: underline; }
+
+#login-btn {
+    min-height: 36px;
+    padding: .45rem .9rem;
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    background: var(--panel);
+    color: var(--ink);
+    font: inherit;
+    font-size: 12px;
     cursor: pointer;
 }
 
-a.user-badge:hover span { text-decoration: underline; }
+#login-btn:hover { border-color: var(--ink); }
 
 
 /* ============================================================
-   DIALOGS
+   DIALOGS (points + friends)
    ============================================================ */
 
 dialog {
-    border: 1px solid var(--border);
+    border: 1px solid var(--line);
     border-radius: 12px;
-    background: var(--card);
-    color: var(--text);
+    background: var(--panel);
+    color: var(--ink);
     padding: 1.5rem;
     max-width: 360px;
     width: 90vw;
@@ -240,120 +157,45 @@ dialog {
 
 dialog::backdrop { background: rgba(0, 0, 0, .5); }
 
-#points-form {
-    display: grid;
-    gap: 1rem;
-    margin: 0;
-}
+#points-form { display: grid; gap: 1rem; margin: 0; }
 
-#points-title {
-    margin: 0;
-    font-size: 1.2rem;
-    font-weight: 600;
-}
-
-#points-form label {
-    font-size: .9rem;
-    color: var(--muted);
-}
+#points-title { margin: 0; font-size: 1.2rem; font-weight: 600; }
+#points-form label { font-size: .9rem; color: var(--muted); }
 
 #points-input {
     font: inherit;
     padding: .6rem .75rem;
     border-radius: 8px;
-    border: 1px solid var(--border);
-    background: var(--page);
-    color: var(--text);
+    border: 1px solid var(--line);
+    background: var(--panel);
+    color: var(--ink);
     -moz-appearance: textfield;
     appearance: textfield;
 }
 
 #points-input::-webkit-outer-spin-button,
-#points-input::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-}
+#points-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 
-#points-input:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: -1px;
-}
+#points-input:focus-visible { outline: 2px solid var(--ink); outline-offset: -1px; }
 
-.dialog-buttons {
-    display: flex;
-    gap: .5rem;
-    justify-content: flex-end;
-}
+.dialog-buttons { display: flex; gap: .5rem; justify-content: flex-end; }
 
 .dialog-buttons button {
     min-height: 40px;
     padding: .5rem 1rem;
-    border: 1px solid var(--border);
+    border: 1px solid var(--line);
     border-radius: 8px;
-    background: var(--card);
-    color: var(--text);
+    background: transparent;
+    color: var(--ink);
     font: inherit;
     cursor: pointer;
 }
 
-.dialog-buttons button:hover { border-color: var(--accent); }
-
-.dialog-buttons button[type="submit"] {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: #fff;
-}
-
-
-/* ============================================================
-   FRIENDS BUTTON (per card)
-   ============================================================ */
-
-.card-friends-btn {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    z-index: 2;
-    width: 32px;
-    height: 32px;
-    padding: 4px;
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    background: var(--card);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: .75;
-    transition: opacity .15s ease, border-color .15s ease;
-}
-
-.card-friends-btn img {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-}
-
-.card-friends-btn:hover,
-.card-friends-btn:focus-visible {
-    opacity: 1;
-    border-color: var(--accent);
-    outline: none;
-}
-
-
-/* ============================================================
-   FRIENDS DIALOG
-   ============================================================ */
+.dialog-buttons button:hover { border-color: var(--ink); }
+.dialog-buttons button[type="submit"] { background: var(--ink); border-color: var(--ink); color: var(--panel); }
 
 #friends-dialog { max-width: 440px; }
-
-#friends-dialog h2 {
-    margin: 0 0 1rem;
-    font-size: 1.2rem;
-    font-weight: 600;
-}
+#friends-dialog h2 { margin: 0 0 1rem; font-size: 1.2rem; font-weight: 600; }
 
 #friends-list {
     list-style: none;
@@ -370,24 +212,13 @@ dialog::backdrop { background: rgba(0, 0, 0, .5); }
     align-items: center;
     gap: .6rem;
     padding: .5rem .6rem;
-    background: var(--page);
-    border: 1px solid var(--border);
+    border: 1px solid var(--line);
     border-radius: 8px;
 }
 
-.friend-row.muted {
-    color: var(--muted);
-    font-style: italic;
-    justify-content: center;
-}
+.friend-row.muted { color: var(--muted); font-style: italic; justify-content: center; }
 
-.friend-avatar {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    object-fit: cover;
-    flex-shrink: 0;
-}
+.friend-avatar { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
 
 .friend-name {
     flex: 1;
@@ -398,14 +229,7 @@ dialog::backdrop { background: rgba(0, 0, 0, .5); }
     font-weight: 500;
 }
 
-.friend-points {
-    font-size: .8rem;
-    font-variant-numeric: tabular-nums;
-    color: var(--text);
-    flex-shrink: 0;
-}
+.friend-self { color: var(--muted); font-weight: 400; font-size: .8em; }
 
-.friend-points.muted {
-    color: var(--muted);
-    font-style: italic;
-}
+.friend-points { font-size: .8rem; font-variant-numeric: tabular-nums; flex-shrink: 0; }
+.friend-points.muted { color: var(--muted); font-style: italic; }
