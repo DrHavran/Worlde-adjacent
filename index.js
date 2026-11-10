@@ -268,7 +268,7 @@ let selectionFriendsToken = 0;
 
 /**
  * Renders the inline friends list shown under the selection panel
- * in modern view. Alphabetical, includes yourself.
+ * in modern view, includes yourself.
  * Hidden entirely when there are no friends or the user is logged out.
  */
 async function renderSelectionFriends(gameUrl, gameLabel) {
@@ -286,7 +286,16 @@ async function renderSelectionFriends(gameUrl, gameLabel) {
         if (token !== selectionFriendsToken) return;
         if (!friends.length) return;
 
-        friends.sort((a, b) => a.username.localeCompare(b.username, undefined, { sensitivity: 'base' }));
+        // Sort: played today first, then by points descending, then alphabetically.
+        // No isSelf special-casing — you land wherever your score puts you.
+        friends.sort((a, b) => {
+            if (a.played !== b.played) return a.played ? -1 : 1;
+            if (a.played && b.played) {
+                const diff = (b.points ?? 0) - (a.points ?? 0);
+                if (diff !== 0) return diff;
+            }
+            return a.username.localeCompare(b.username, undefined, { sensitivity: 'base' });
+        });
 
         const lbl = (typeof gameLabel === 'string') ? gameLabel : ' pts';
 
