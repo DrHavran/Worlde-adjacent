@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="../../theme.js"></script>
+    <link rel="stylesheet" href="../../base.css">
+    <link rel="stylesheet" href="login.css">
+    <title>Log in</title>
+</head>
+<body>
+    <div class="login-card">
+        <form id="login-form">
+            <h1>Log in</h1>
+
+            <label>
+                <span>Email</span>
+                <input type="email" id="email" autocomplete="email" required>
+            </label>
+
+            <label>
+                <span>Password</span>
+                <input type="password" id="password" autocomplete="current-password" required>
+            </label>
+
+            <button type="submit">Log in</button>
+            <p id="error" class="error"></p>
+
+            <a href="../sign-in/sign-in.html" class="alt-button">Don't have an account? Create one</a>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script type="module" src="login.js"></script>
+</body>
+</html>

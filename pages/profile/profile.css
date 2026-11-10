@@ -1,0 +1,252 @@
+/* Page-specific styles for profile.html.
+   Palette, font, header live in base.css. */
+
+   .profile-main {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 0 1.25rem 3rem;
+    display: grid;
+    gap: 1.25rem;
+}
+
+.profile-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem;
+    display: grid;
+    gap: .9rem;
+}
+
+.profile-card h2 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+/* avatar */
+
+.avatar-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.avatar-large {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: var(--subtle);
+    border: 1px solid var(--border);
+    flex-shrink: 0;
+}
+
+.avatar-row .field { flex: 1; }
+
+/* fields */
+
+.field {
+    display: grid;
+    gap: .35rem;
+}
+
+.field label {
+    font-size: .85rem;
+    color: var(--muted);
+}
+
+.field input {
+    font: inherit;
+    padding: .6rem .75rem;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--page);
+    color: var(--text);
+}
+
+.field input:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -1px;
+}
+
+/* buttons — shared base for direct card buttons + row buttons */
+
+.profile-card > button,
+.button-row > button {
+    min-height: 40px;
+    padding: .5rem 1.1rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--card);
+    color: var(--text);
+    font: inherit;
+    cursor: pointer;
+}
+
+.profile-card > button { justify-self: start; }
+
+.profile-card > button:hover:not(:disabled),
+.button-row > button:hover:not(:disabled) { border-color: var(--accent); }
+
+.profile-card > button:disabled,
+.button-row > button:disabled { opacity: .5; cursor: not-allowed; }
+
+/* danger variant (log out) */
+
+.profile-card > button.danger,
+.button-row > button.danger {
+    border-color: var(--error);
+    color: var(--error);
+}
+
+.profile-card > button.danger:hover,
+.button-row > button.danger:hover {
+    background: var(--error);
+    color: #fff;
+}
+
+/* info variant (change password) — blue outline, fills on hover */
+
+#change-password-btn {
+    border-color: var(--info);
+    color: var(--info);
+}
+
+#change-password-btn:hover:not(:disabled) {
+    background: var(--info);
+    border-color: var(--info);
+    color: #fff;
+}
+
+/* save button — right-aligned, solid green */
+
+#save-profile {
+    justify-self: end;
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+    font-weight: 600;
+}
+
+#save-profile:hover:not(:disabled) {
+    background: var(--accent-hover);
+    border-color: var(--accent-hover);
+    color: #fff;
+}
+
+/* security — change password (left) + log out (right) */
+
+.button-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .5rem;
+    flex-wrap: wrap;
+}
+
+/* messages — only take space when populated */
+
+.msg {
+    margin: 0;
+    font-size: .85rem;
+}
+
+.msg:empty { display: none; }
+
+.msg.ok  { color: var(--accent); }
+.msg.err { color: var(--error); }
+
+/* back link — top-left of header, compact arrow */
+
+.back-link {
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: start;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--card);
+    color: var(--text);
+    font-size: 1.3rem;
+    font-weight: 600;
+    line-height: 1;
+    text-decoration: none;
+    transition: border-color .15s ease;
+}
+
+.back-link:hover { border-color: var(--accent); }
+
+/* friend search + list */
+
+.search-results {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: .5rem;
+    max-height: 40vh;
+    overflow-y: auto;
+}
+
+.result-row {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    padding: .5rem .6rem;
+    background: var(--page);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+}
+
+.result-muted {
+    color: var(--muted);
+    font-style: italic;
+    text-align: center;
+    padding: .5rem;
+}
+
+.result-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.result-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 500;
+}
+
+.result-btn {
+    min-height: 32px;
+    padding: .3rem .8rem;
+    border: 1px solid var(--accent);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--accent);
+    font: inherit;
+    font-size: .85rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.result-btn.following {
+    background: var(--accent);
+    color: #fff;
+}
+
+.result-btn:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+}

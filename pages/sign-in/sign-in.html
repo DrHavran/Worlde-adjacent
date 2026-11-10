@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="../../theme.js"></script>
+    <link rel="stylesheet" href="../../base.css">
+    <link rel="stylesheet" href="sign-in.css">
+    <title>Create account</title>
+</head>
+<body>
+    <form id="sign-in-form">
+        <h1>Create account</h1>
+
+        <label>
+            <span>Username</span>
+            <input type="text" id="username" autocomplete="username" required minlength="3" maxlength="20">
+        </label>
+
+        <label>
+            <span>Email</span>
+            <input type="email" id="email" autocomplete="email" required>
+        </label>
+
+        <label>
+            <span>Password</span>
+            <input type="password" id="password" autocomplete="new-password" required minlength="6">
+        </label>
+
+        <label>
+            <span>Confirm password</span>
+            <input type="password" id="confirm-password" autocomplete="new-password" required minlength="6">
+        </label>
+
+        <button type="submit">Create account</button>
+        <p id="error" class="error"></p>
+
+        <a href="../log-in/login.html" class="alt-button">Already have an account? Log in</a>
+    </form>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script type="module" src="sign-in.js"></script>
+</body>
+</html>
