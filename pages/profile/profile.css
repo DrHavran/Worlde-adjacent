@@ -1,4 +1,7 @@
-.profile-main {
+/* Page-specific styles for profile.html.
+   Palette, font, header live in base.css. */
+
+   .profile-main {
     max-width: 640px;
     margin: 0 auto;
     padding: 0 1.25rem 3rem;
@@ -21,6 +24,8 @@
     font-weight: 600;
 }
 
+/* avatar */
+
 .avatar-row {
     display: flex;
     align-items: center;
@@ -37,9 +42,9 @@
     flex-shrink: 0;
 }
 
-.avatar-row .field {
-    flex: 1;
-}
+.avatar-row .field { flex: 1; }
+
+/* fields */
 
 .field {
     display: grid;
@@ -65,8 +70,10 @@
     outline-offset: -1px;
 }
 
-.profile-card > button {
-    justify-self: start;
+/* buttons — shared base for direct card buttons + row buttons */
+
+.profile-card > button,
+.button-row > button {
     min-height: 40px;
     padding: .5rem 1.1rem;
     border: 1px solid var(--border);
@@ -77,48 +84,105 @@
     cursor: pointer;
 }
 
-.profile-card > button:hover:not(:disabled) {
-    border-color: var(--accent);
+.profile-card > button { justify-self: start; }
+
+.profile-card > button:hover:not(:disabled),
+.button-row > button:hover:not(:disabled) { border-color: var(--accent); }
+
+.profile-card > button:disabled,
+.button-row > button:disabled { opacity: .5; cursor: not-allowed; }
+
+/* danger variant (log out) */
+
+.profile-card > button.danger,
+.button-row > button.danger {
+    border-color: var(--error);
+    color: var(--error);
 }
 
-.profile-card > button:disabled {
-    opacity: .5;
-    cursor: not-allowed;
-}
-
-.profile-card > button.danger {
-    border-color: #c0392b;
-    color: #ef6b6b;
-}
-
-.profile-card > button.danger:hover {
-    background: #c0392b;
+.profile-card > button.danger:hover,
+.button-row > button.danger:hover {
+    background: var(--error);
     color: #fff;
 }
 
+/* info variant (change password) — blue outline, fills on hover */
+
+#change-password-btn {
+    border-color: var(--info);
+    color: var(--info);
+}
+
+#change-password-btn:hover:not(:disabled) {
+    background: var(--info);
+    border-color: var(--info);
+    color: #fff;
+}
+
+/* save button — right-aligned, solid green */
+
+#save-profile {
+    justify-self: end;
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+    font-weight: 600;
+}
+
+#save-profile:hover:not(:disabled) {
+    background: var(--accent-hover);
+    border-color: var(--accent-hover);
+    color: #fff;
+}
+
+/* security — change password (left) + log out (right) */
+
+.button-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .5rem;
+    flex-wrap: wrap;
+}
+
+/* messages — only take space when populated */
+
 .msg {
     margin: 0;
-    min-height: 1.2em;
     font-size: .85rem;
 }
 
+.msg:empty { display: none; }
+
 .msg.ok  { color: var(--accent); }
-.msg.err { color: #ef6b6b; }
+.msg.err { color: var(--error); }
+
+/* back link — top-left of header, compact arrow */
 
 .back-link {
-    color: inherit;
-    text-decoration: none;
-    padding: .6rem 1rem;
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: start;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
     border: 1px solid var(--border);
     border-radius: 8px;
     background: var(--card);
+    color: var(--text);
+    font-size: 1.3rem;
+    font-weight: 600;
+    line-height: 1;
+    text-decoration: none;
+    transition: border-color .15s ease;
 }
 
-.back-link:hover {
-    border-color: var(--accent);
-}
+.back-link:hover { border-color: var(--accent); }
 
-/* search results */
+/* friend search + list */
 
 .search-results {
     list-style: none;
@@ -153,11 +217,6 @@
     border-radius: 50%;
     object-fit: cover;
     flex-shrink: 0;
-}
-
-.result-avatar-empty {
-    background: var(--subtle);
-    border: 1px solid var(--border);
 }
 
 .result-name {

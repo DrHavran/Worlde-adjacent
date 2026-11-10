@@ -220,3 +220,29 @@ export async function fetchFollowedProfiles(userId) {
     const order = new Map(ids.map((id, i) => [id, i]));
     return (profiles ?? []).sort((a, b) => order.get(a.id) - order.get(b.id));
 }
+
+// Create a new account (email + password)
+export async function signUp(email, password) {
+    const { data, error } = await supabase.auth.signUp({ email, password });
+    if (error) throw error;
+    return data;   // { user, session }
+}
+
+// Create the profile row for a freshly-signed-up user
+export async function createProfile(userId, username, avatarUrl = null) {
+    const { error } = await supabase
+        .from('profiles')
+        .insert({ id: userId, username, avatar_url: avatarUrl });
+    if (error) throw error;
+}
+
+// Check if a username is still free (best-effort, pre-flight)
+export async function isUsernameAvailable(username) {
+    const { data, error } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('username', username)
+        .maybeSingle();
+    if (error) throw error;
+    return !data;
+}

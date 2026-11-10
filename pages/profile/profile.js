@@ -1,8 +1,8 @@
 import {
     getSession, getUser, getProfile,
-    updateProfile, updatePassword, searchUsers,
+    updateProfile, searchUsers,
     getFollowing, fetchFollowedProfiles, follow, unfollow, logout,
-} from '../../Data/integration.js';
+} from '../../supabase/integration.js';
 
 let currentUser = null;
 let following = new Set();
@@ -12,10 +12,6 @@ const avatarInput    = document.getElementById('avatar-url');
 const usernameInput  = document.getElementById('username');
 const saveProfileBtn = document.getElementById('save-profile');
 const profileMsg     = document.getElementById('profile-msg');
-
-const newPassword     = document.getElementById('new-password');
-const savePasswordBtn = document.getElementById('save-password');
-const passwordMsg     = document.getElementById('password-msg');
 
 const searchInput   = document.getElementById('friend-search');
 const searchResults = document.getElementById('search-results');
@@ -40,19 +36,22 @@ function showMsg(el, text, kind = 'ok') {
 }
 
 function updateAvatarPreview(url) {
-    if (url) {
-        avatarPreview.src = url;
-        avatarPreview.style.display = '';
-    } else {
-        avatarPreview.removeAttribute('src');
-        avatarPreview.style.display = 'none';
-    }
+    avatarPreview.onerror = null;   // reset in case previous src failed
+    avatarPreview.src = url || SITE_ICONS.placeholderUser;
+    avatarPreview.style.display = '';
 }
 
+// Fallback if the URL in the src fails to load
+avatarPreview.addEventListener('error', () => {
+    avatarPreview.onerror = null;
+    if (avatarPreview.src !== SITE_ICONS.placeholderUser) {
+        avatarPreview.src = SITE_ICONS.placeholderUser;
+    }
+});
+
 function rowHtml(user, actionLabel, actionClass) {
-    const avatar = user.avatar_url
-        ? `<img class="result-avatar" src="${escapeHtml(user.avatar_url)}" alt="">`
-        : `<div class="result-avatar result-avatar-empty"></div>`;
+    const avatarSrc = user.avatar_url || SITE_ICONS.placeholderUser;
+    const avatar = `<img class="result-avatar" src="${escapeHtml(avatarSrc)}" alt="" onerror="this.onerror=null;this.src='${SITE_ICONS.placeholderUser}'">`;
     return `
         <li class="result-row">
             ${avatar}
@@ -65,7 +64,7 @@ function rowHtml(user, actionLabel, actionClass) {
         </li>`;
 }
 
-// ---------- friends list (already followed) ----------
+// ---------- friends list ----------
 
 async function renderFriendsList() {
     friendsList.innerHTML = '<li class="result-muted">Loading…</li>';
@@ -88,7 +87,7 @@ async function renderFriendsList() {
 async function init() {
     const session = await getSession();
     if (!session) {
-        window.location.href = '../LogInPage/logIn.html';
+        window.location.href = '../log-in/login.html';
         return;
     }
     currentUser = await getUser();
@@ -98,6 +97,8 @@ async function init() {
         usernameInput.value = profile.username || '';
         avatarInput.value   = profile.avatar_url || '';
         updateAvatarPreview(profile.avatar_url);
+    } else {
+        updateAvatarPreview(null);
     }
 
     following = await getFollowing(currentUser.id);
@@ -129,27 +130,6 @@ saveProfileBtn.addEventListener('click', async () => {
     }
 });
 
-// ---------- password ----------
-
-savePasswordBtn.addEventListener('click', async () => {
-    const pw = newPassword.value;
-    if (pw.length < 6) {
-        showMsg(passwordMsg, 'Password must be at least 6 characters.', 'err');
-        return;
-    }
-
-    savePasswordBtn.disabled = true;
-    try {
-        await updatePassword(pw);
-        newPassword.value = '';
-        showMsg(passwordMsg, 'Password updated.', 'ok');
-    } catch (err) {
-        showMsg(passwordMsg, err.message || 'Failed to update password.', 'err');
-    } finally {
-        savePasswordBtn.disabled = false;
-    }
-});
-
 // ---------- friend search ----------
 
 let searchTimeout = null;
@@ -178,7 +158,7 @@ async function doSearch(query) {
     }
 }
 
-// ---------- follow / unfollow (shared handler for both lists) ----------
+// ---------- follow / unfollow ----------
 
 async function toggleFollow(btn) {
     const id = btn.dataset.id;
@@ -197,7 +177,6 @@ async function toggleFollow(btn) {
             btn.classList.add('following');
         }
         await renderFriendsList();
-        // refresh search results so buttons reflect new state
         const q = searchInput.value.trim();
         if (q.length >= 2) await doSearch(q);
     } catch (err) {
@@ -221,7 +200,13 @@ friendsList.addEventListener('click', (e) => {
 
 logoutBtn.addEventListener('click', async () => {
     await logout();
-    window.location.href = '../index.html';
+    window.location.href = '../../index.html';
+});
+
+// ---------- change password ----------
+
+document.getElementById('change-password-btn').addEventListener('click', () => {
+    window.location.href = '../change-password/change-password.html';
 });
 
 // ---------- go ----------

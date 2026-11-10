@@ -39,6 +39,7 @@ var SITE_ICONS = (() => {
         favicon: base + 'images/icon.png',
         friends: base + 'images/friends-icon.png',
         streak:  base + 'images/streak-icon.png',
+        placeholderUser: base + 'images/placeholder-user-icon.jpg',
     };
 })();
 

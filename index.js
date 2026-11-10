@@ -25,7 +25,7 @@ async function getData(file) {
     const isProduction = window.location.hostname === "drhavran.github.io";
     const url = isProduction
         ? `https://drhavran.github.io/Worlde-adjacent/${file}`
-        : `../${file}`;
+        : `./${file}`;
     const response = await fetch(url);
     if (!response.ok) throw new Error(`Failed to fetch ${url}: ${response.status}`);
     return response.json();
@@ -58,7 +58,9 @@ async function renderUserArea() {
     // Display the user
     area.innerHTML = `
         <a href="pages/profile/profile.html" class="user-badge" title="Edit profile">
-            ${avatar ? `<img src="${escapeHtml(avatar)}" alt="">` : ''}
+            <img src="${avatar ? escapeHtml(avatar) : SITE_ICONS.placeholderUser}"
+                alt=""
+                onerror="this.onerror=null;this.src='${SITE_ICONS.placeholderUser}'">
             <span>${escapeHtml(name)}</span>
         </a>
     `;
@@ -181,9 +183,9 @@ async function openFriendsDialog(gameName, gameUrl, label) {
             const pointsHtml = f.played
                 ? `<span class="friend-points">${f.points}${label}</span>`
                 : `<span class="friend-points muted">didn't play today</span>`;
-            const avatarHtml = f.avatar_url
-                ? `<img class="friend-avatar" src="${escapeHtml(f.avatar_url)}" alt="">`
-                : `<div class="friend-avatar friend-avatar-empty"></div>`;
+                const avatarSrc = f.avatar_url || SITE_ICONS.placeholderUser;
+                const avatarHtml = `<img class="friend-avatar" src="${escapeHtml(avatarSrc)}" alt=""
+                             onerror="this.onerror=null;this.src='${SITE_ICONS.placeholderUser}'">`;
             const selfBadge = f.isSelf ? ' <span class="friend-self">(you)</span>' : '';
             return `
                 <li class="friend-row${f.isSelf ? ' friend-row-self' : ''}">

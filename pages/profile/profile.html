@@ -4,16 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="../../theme.js"></script>
-    <link rel="stylesheet" href="../index.css">
+    <link rel="stylesheet" href="../../base.css">
     <link rel="stylesheet" href="profile.css">
     <title>Profile</title>
 </head>
 <body>
 
     <header class="page-header">
+        <a href="../../index.html" class="back-link" title="Back to games" aria-label="Back to games">←</a>
         <h1>Profile</h1>
         <div class="header-right">
-            <a href="../index.html" class="back-link">Back to games</a>
             <button id="theme-toggle" type="button">White mode</button>
         </div>
     </header>
@@ -41,16 +41,6 @@
         </section>
 
         <section class="profile-card">
-            <h2>Change password</h2>
-            <div class="field">
-                <label for="new-password">New password</label>
-                <input type="password" id="new-password" minlength="6" autocomplete="new-password">
-            </div>
-            <button type="button" id="save-password">Update password</button>
-            <p id="password-msg" class="msg"></p>
-        </section>
-        
-        <section class="profile-card">
             <h2>Your friends</h2>
             <ul id="friends-list" class="search-results"></ul>
         </section>
@@ -65,7 +55,11 @@
         </section>
 
         <section class="profile-card">
-            <button type="button" id="logout-btn" class="danger">Log out</button>
+            <h2>Security</h2>
+            <div class="button-row">
+                <button type="button" id="change-password-btn">Change password</button>
+                <button type="button" id="logout-btn" class="danger">Log out</button>
+            </div>
         </section>
 
     </main>

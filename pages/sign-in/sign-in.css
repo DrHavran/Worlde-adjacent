@@ -1,0 +1,85 @@
+/* Page-specific styles for sign-in.html.
+   Palette, font live in base.css. */
+
+   body {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+}
+
+form {
+    width: min(90vw, 340px);
+    background: var(--card);
+    padding: 2rem;
+    border-radius: 12px;
+    display: grid;
+    gap: 1rem;
+}
+
+h1 {
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: 600;
+    text-align: left;
+    letter-spacing: normal;
+}
+
+label {
+    display: grid;
+    gap: .35rem;
+    font-size: .9rem;
+    color: var(--muted);
+}
+
+input {
+    font: inherit;
+    padding: .7rem .8rem;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--input-bg);
+    color: var(--text);
+}
+
+input:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: -1px;
+    border-color: transparent;
+}
+
+button[type="submit"] {
+    font: inherit;
+    padding: .75rem;
+    border-radius: 8px;
+    border: none;
+    background: var(--accent);
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: .25rem;
+}
+
+button[type="submit"]:hover:not(:disabled) { background: var(--accent-hover); }
+button[type="submit"]:disabled { opacity: .6; cursor: not-allowed; }
+
+.error {
+    margin: 0;
+    min-height: 1.2em;
+    font-size: .85rem;
+    color: var(--error);
+}
+
+.alt-button {
+    display: block;
+    text-align: center;
+    padding: .65rem;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text);
+    font-weight: 600;
+    font-size: .9rem;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.alt-button:hover { border-color: var(--accent); }
