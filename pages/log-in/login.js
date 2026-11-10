@@ -1,4 +1,4 @@
-import { login } from '../Data/integration.js';
+import { login } from '../../Data/integration.js';
 
 const form     = document.getElementById('login-form');
 const emailEl  = document.getElementById('email');

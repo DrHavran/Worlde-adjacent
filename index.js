@@ -1,14 +1,26 @@
 import {
     getSession, getUser, getProfile,
     submitCheckIn, fetchUserStats, fetchFriendsForGame,
-} from './Data/integration.js';
+} from './supabase/integration.js';
 
-let currentUser = null;
+/**
+ * Stores a map of the user stats on each game
+ * Example:
+ * 'https://nytimes.com/games/wordle/index.html' => {
+ *     today_points: 4,      // How many points/mistakes the user scored today
+ *     current_streak: 1,    // Its streak
+ *     done_today: true      // If he has finished the game today
+ *  },
+ */
 let userStats = new Map();
+// Stores the current logged in user
+let currentUser = null;
+// Stores the website.json
 let websiteData = null;
 
-// ---------- data loading ----------
-
+/**
+ * Fetches a JSON file -> if running in localhost, fetches it directly from your pc
+ */
 async function getData(file) {
     const isProduction = window.location.hostname === "drhavran.github.io";
     const url = isProduction
@@ -19,13 +31,9 @@ async function getData(file) {
     return response.json();
 }
 
-// ---------- header user area ----------
-
-function escapeHtml(s) {
-    return String(s).replace(/[&<>"']/g, c => ({
-        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-    }[c]));
-}
+/**
+ * Loads the top box of user with either the [Log-In] button, or its profile
+ */
 async function renderUserArea() {
     const area = document.getElementById('user-area');
     if (!area) return;
@@ -34,10 +42,11 @@ async function renderUserArea() {
     const user = session ? await getUser() : null;
     currentUser = user;
 
+    // If not logged in, display log-in button
     if (!user) {
         area.innerHTML = '<button type="button" id="login-btn">Log in</button>';
         document.getElementById('login-btn').addEventListener('click', () => {
-            window.location.href = 'LogInPage/logIn.html';
+            window.location.href = 'pages/log-in/login.html';
         });
         return;
     }
@@ -46,27 +55,18 @@ async function renderUserArea() {
     const name    = profile?.username || user.email?.split('@')[0] || 'User';
     const avatar  = profile?.avatar_url;
 
+    // Display the user
     area.innerHTML = `
-        <a href="ProfilePage/profile.html" class="user-badge" title="Edit profile">
+        <a href="pages/profile/profile.html" class="user-badge" title="Edit profile">
             ${avatar ? `<img src="${escapeHtml(avatar)}" alt="">` : ''}
             <span>${escapeHtml(name)}</span>
         </a>
     `;
 }
 
-// ---------- user stats ----------
-
-async function loadUserStats() {
-    if (!currentUser) { userStats = new Map(); return; }
-    userStats = await fetchUserStats(currentUser.id);
-}
-
-function isDoneToday(url) {
-    return userStats.get(url)?.done_today === true;
-}
-
-// ---------- points dialog ----------
-
+/**
+ * Handles the pop up, when a logged in user plays a game
+ */
 const pointsDialog = document.getElementById('points-dialog');
 const pointsForm   = document.getElementById('points-form');
 const pointsInput  = document.getElementById('points-input');
@@ -76,14 +76,7 @@ const pointsLabel  = document.getElementById('points-label');
 
 let pendingPoints = null;
 
-function dialogLabelFor(label) {
-    if (!label) return 'points';
-    const t = String(label).trim();
-    if (!t) return 'points';
-    if (t.startsWith('/')) return 'score';
-    return t;
-}
-
+// Opens the pop up window
 function openPointsDialog(url, name, label, max, onComplete) {
     pendingPoints = { url, max, onComplete };
     pointsTitle.textContent = name;
@@ -95,11 +88,22 @@ function openPointsDialog(url, name, label, max, onComplete) {
     pointsInput.focus();
 }
 
+// Clean up function
+function dialogLabelFor(label) {
+    if (!label) return 'points';
+    const t = String(label).trim();
+    if (!t) return 'points';
+    if (t.startsWith('/')) return 'score';
+    return t;
+}
+
+// Closes the window
 pointsCancel.addEventListener('click', () => {
     pendingPoints = null;
     pointsDialog.close();
 });
 
+// Main function for when user submits their score
 pointsForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (!pendingPoints) return;
@@ -108,6 +112,7 @@ pointsForm.addEventListener('submit', async (e) => {
     if (!Number.isFinite(points) || points < 0) return;
 
     const { url, max, onComplete } = pendingPoints;
+    // Check if user didn't enter a bigger value then they should
     if (max != null && points > max) {
         alert(`Max for this game is ${max}.`);
         return;
@@ -186,7 +191,7 @@ async function openFriendsDialog(gameName, gameUrl, label) {
                     <span class="friend-name">${escapeHtml(f.username)}${selfBadge}</span>
                     ${pointsHtml}
                     <span class="card-streak ${streakClass}">
-                        <img class="streak-icon" src="https://cdn-icons-png.flaticon.com/256/8722/8722283.png" alt="">
+                        <img class="streak-icon" src="${SITE_ICONS.streak}" alt="">
                         <span class="streak-count">${f.streak}</span>
                     </span>
                 </li>
@@ -198,129 +203,27 @@ async function openFriendsDialog(gameName, gameUrl, label) {
     }
 }
 
-// ---------- one game card ----------
+/**
+ * Loads the sections from website.json 
+ */
+function render(data) {
+    const container = document.querySelector(".sections");
+    container.innerHTML = "";
 
-function createCard(name, entry) {
-    const url   = typeof entry === "string" ? entry : entry.url;
-    const thumb = typeof entry === "string" ? ""    : (entry.thumb || "");
-    const label = (typeof entry === "object" && entry.label !== undefined)
-        ? entry.label
-        : " pts";
-    const max   = (typeof entry === "object" && entry.max !== undefined)
-        ? entry.max
-        : null;
-
-    const li = document.createElement("li");
-    li.className = "game-card";
-
-    const link = document.createElement("a");
-    link.className = "card-link";
-    link.href = url;
-    link.target = "_blank";
-    link.rel = "noopener noreferrer";
-    link.setAttribute("aria-label", name);
-
-    link.addEventListener('click', () => {
-        if (!currentUser) return;
-        if (isDoneToday(url)) return;
-        openPointsDialog(url, name, label, max, async () => {
-            await loadUserStats();
-            if (websiteData) render(websiteData);
-        });
-    });
-
-    const thumbWrap = document.createElement("div");
-    thumbWrap.className = "thumb-wrap";
-
-    const makePlaceholder = () => {
-        const ph = document.createElement("div");
-        ph.className = "thumb placeholder";
-        return ph;
-    };
-
-    if (thumb) {
-        const img = document.createElement("img");
-        img.className = "thumb";
-        img.src = thumb;
-        img.alt = "";
-        img.loading = "lazy";
-        img.onerror = () => img.replaceWith(makePlaceholder());
-        thumbWrap.appendChild(img);
-    } else {
-        thumbWrap.appendChild(makePlaceholder());
+    for (const [sectionName, items] of Object.entries(data)) {
+        const section = document.createElement("section");
+        const h2 = document.createElement("h2");
+        h2.textContent = sectionName;
+        section.appendChild(h2);
+        section.appendChild(renderList(items)); // Loads the game items
+        container.appendChild(section);
     }
-
-    const title = document.createElement("span");
-    title.className = "card-title";
-    title.textContent = name;
-
-    const footer = document.createElement("div");
-    footer.className = "card-footer";
-    footer.appendChild(title);
-
-    if (currentUser) {
-        const stat = userStats.get(url) ?? { today_points: null, current_streak: 0, done_today: false };
-
-        if (stat.today_points !== null) {
-            const pointsEl = document.createElement("span");
-            pointsEl.className = "card-points";
-            pointsEl.textContent = `${stat.today_points}${label}`;
-            footer.appendChild(pointsEl);
-        }
-
-        const streakEl = document.createElement("span");
-        streakEl.className = "card-streak";
-
-        const icon = document.createElement("img");
-        icon.className = "streak-icon";
-        icon.src = "https://cdn-icons-png.flaticon.com/256/8722/8722283.png";
-        icon.alt = "";
-
-        const count = document.createElement("span");
-        count.className = "streak-count";
-        count.textContent = stat.current_streak;
-
-        streakEl.classList.toggle("zero",    stat.current_streak === 0);
-        streakEl.classList.toggle("hot",     stat.done_today);
-        streakEl.classList.toggle("at-risk", stat.current_streak > 0 && !stat.done_today);
-
-        streakEl.appendChild(icon);
-        streakEl.appendChild(count);
-        footer.appendChild(streakEl);
-    }
-
-    li.classList.toggle("done", currentUser && isDoneToday(url));
-
-    li.appendChild(link);
-    li.appendChild(thumbWrap);
-    li.appendChild(footer);
-
-    if (currentUser) {
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "card-friends-btn";
-        btn.setAttribute("aria-label", `Friends playing ${name}`);
-
-        const btnIcon = document.createElement("img");
-        btnIcon.src = "images/frienddIcon.png";
-        btnIcon.alt = "friends";
-        btnIcon.onerror = () => { btn.textContent = '👥'; };
-        btn.appendChild(btnIcon);
-
-        btn.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            openFriendsDialog(name, url, label);
-        });
-
-        li.appendChild(btn);
-    }
-
-    return li;
 }
 
-// ---------- recursive list renderer ----------
-
+/**
+ * Checks if there are nested categories and calls itself recursivly
+ * Currently not needed since categories aren't nested but it's a nice bonus
+ */
 function renderList(items) {
     const ul = document.createElement("ul");
     ul.className = "card-grid";
@@ -346,20 +249,144 @@ function renderList(items) {
     return ul;
 }
 
-// ---------- top-level renderer ----------
+/**
+ * Loads one game card
+ */
+function createCard(name, entry) {
+    const url   = typeof entry === "string" ? entry : entry.url;
+    const thumb = typeof entry === "string" ? ""    : (entry.thumb || "");
+    const label = (typeof entry === "object" && entry.label !== undefined) ? entry.label : " pts";
+    const max   = (typeof entry === "object" && entry.max !== undefined) ? entry.max : null;
 
-function render(data) {
-    const container = document.querySelector(".sections");
-    container.innerHTML = "";
+    const li = document.createElement("li");
+    li.className = "game-card";
 
-    for (const [sectionName, items] of Object.entries(data)) {
-        const section = document.createElement("section");
-        const h2 = document.createElement("h2");
-        h2.textContent = sectionName;
-        section.appendChild(h2);
-        section.appendChild(renderList(items));
-        container.appendChild(section);
+    const link = document.createElement("a");
+    link.className = "card-link";
+    link.href = url;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.setAttribute("aria-label", name);
+
+    // Open points pop up if user didn't play today & is logged in
+    link.addEventListener('click', () => {
+        if (!currentUser) return;
+        if (isDoneToday(url)) return;
+        openPointsDialog(url, name, label, max, async () => {
+            await loadUserStats();
+            if (websiteData) render(websiteData);
+        });
+    });
+
+    const thumbWrap = document.createElement("div");
+    thumbWrap.className = "thumb-wrap";
+
+    const makePlaceholder = () => {
+        const ph = document.createElement("div");
+        ph.className = "thumb placeholder";
+        return ph;
+    };
+
+    if (thumb) {
+        const img = document.createElement("img");
+        img.className = "thumb";
+        img.src = thumb;
+        img.alt = "game-image";
+        img.loading = "lazy";
+        img.onerror = () => img.replaceWith(makePlaceholder());
+        thumbWrap.appendChild(img);
+    } else {
+        thumbWrap.appendChild(makePlaceholder());
     }
+
+    const title = document.createElement("span");
+    title.className = "card-title";
+    title.textContent = name;
+
+    const footer = document.createElement("div");
+    footer.className = "card-footer";
+    footer.appendChild(title);
+
+    // If user is logged in -> add points, streak
+    if (currentUser) {
+        const stat = userStats.get(url) ?? { today_points: null, current_streak: 0, done_today: false };
+
+        if (stat.today_points !== null) {
+            const pointsEl = document.createElement("span");
+            pointsEl.className = "card-points";
+            pointsEl.textContent = `${stat.today_points}${label}`;
+            footer.appendChild(pointsEl);
+        }
+
+        const streakEl = document.createElement("span");
+        streakEl.className = "card-streak";
+
+        const icon = document.createElement("img");
+        icon.className = "streak-icon";
+        icon.src = SITE_ICONS.streak;
+        icon.alt = "streak-icon";
+
+        const count = document.createElement("span");
+        count.className = "streak-count";
+        count.textContent = stat.current_streak;
+
+        // Toggles the "fire icon" states
+        streakEl.classList.toggle("zero",    stat.current_streak === 0);
+        streakEl.classList.toggle("hot",     stat.done_today);
+        streakEl.classList.toggle("at-risk", stat.current_streak > 0 && !stat.done_today);
+
+        streakEl.appendChild(icon);
+        streakEl.appendChild(count);
+        footer.appendChild(streakEl);
+    }
+
+    li.classList.toggle("done", currentUser && isDoneToday(url));
+
+    li.appendChild(link);
+    li.appendChild(thumbWrap);
+    li.appendChild(footer);
+
+    // If user is logged in -> add friends button (Not sure why it's split into two if's)
+    if (currentUser) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "card-friends-btn";
+        btn.setAttribute("aria-label", `Friends playing ${name}`);
+
+        const btnIcon = document.createElement("img");
+        btnIcon.src = SITE_ICONS.friends;
+        btnIcon.alt = "friends-icon";
+        btnIcon.onerror = () => { btn.textContent = '👥'; };
+        btn.appendChild(btnIcon);
+
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            openFriendsDialog(name, url, label); // Open friend dialogue
+        });
+
+        li.appendChild(btn);
+    }
+
+    return li;
+}
+
+// ---------- helpers -----------
+
+async function loadUserStats() {
+    if (!currentUser) { userStats = new Map(); return; }
+    userStats = await fetchUserStats(currentUser.id);
+}
+
+function isDoneToday(url) {
+    return userStats.get(url)?.done_today === true;
+}
+
+// Makes sure user didn't put shit into its name/pfp image
+function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
 }
 
 // ---------- kick off ----------

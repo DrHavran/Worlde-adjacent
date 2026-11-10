@@ -3,16 +3,6 @@ export const supabase = window.supabase.createClient(
     'sb_publishable_NE-iEaxSEAjSbnX1fcx4iw_7wt3F_90'
 );
 
-export async function login(email, password) {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw error;
-    return data.session;
-}
-
-export async function logout() {
-    await supabase.auth.signOut();
-}
-
 export async function getSession() {
     const { data } = await supabase.auth.getSession();
     return data.session;
@@ -23,6 +13,20 @@ export async function getUser() {
     return data.user;
 }
 
+
+// Send login request
+export async function login(email, password) {
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    return data.session;
+}
+
+// Logout of your account
+export async function logout() {
+    await supabase.auth.signOut();
+}
+
+// Get your profile
 export async function getProfile(userId) {
     const { data, error } = await supabase
         .from('profiles')
@@ -33,6 +37,7 @@ export async function getProfile(userId) {
     return data;
 }
 
+// Submit your points for a game
 export async function submitCheckIn(gameUrl, points) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('Not logged in');
@@ -50,6 +55,7 @@ export async function submitCheckIn(gameUrl, points) {
     return { already: false };
 }
 
+// Fetches the user stats for games
 export async function fetchUserStats(userId) {
     const [checkInsRes, streaksRes] = await Promise.all([
         supabase.from('check_ins')
@@ -83,6 +89,7 @@ export async function fetchUserStats(userId) {
     return stats;
 }
 
+// Fetch your friends scores
 export async function fetchFriendsForGame(gameUrl) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return [];
@@ -140,6 +147,7 @@ export async function fetchFriendsForGame(gameUrl) {
         .filter(Boolean);
 }
 
+// Update your profile
 export async function updateProfile(userId, updates) {
     const { error } = await supabase
         .from('profiles')
@@ -148,11 +156,13 @@ export async function updateProfile(userId, updates) {
     if (error) throw error;
 }
 
+// Update your password
 export async function updatePassword(newPassword) {
     const { error } = await supabase.auth.updateUser({ password: newPassword });
     if (error) throw error;
 }
 
+// Search thru users
 export async function searchUsers(query) {
     const { data, error } = await supabase
         .from('profiles')
@@ -163,6 +173,7 @@ export async function searchUsers(query) {
     return data || [];
 }
 
+// Get the users you are following
 export async function getFollowing(userId) {
     const { data, error } = await supabase
         .from('follows')
@@ -172,6 +183,7 @@ export async function getFollowing(userId) {
     return new Set((data ?? []).map(r => r.followee_id));
 }
 
+// Follow a new person
 export async function follow(followerId, followeeId) {
     const { error } = await supabase
         .from('follows')
@@ -179,6 +191,7 @@ export async function follow(followerId, followeeId) {
     if (error && error.code !== '23505') throw error;
 }
 
+// Unfollow a person
 export async function unfollow(followerId, followeeId) {
     const { error } = await supabase
         .from('follows')
@@ -188,6 +201,7 @@ export async function unfollow(followerId, followeeId) {
     if (error) throw error;
 }
 
+// Fetch other people profiles
 export async function fetchFollowedProfiles(userId) {
     const { data: follows, error: fErr } = await supabase
         .from('follows')

@@ -93,7 +93,7 @@
 		{
 			"Countries of the World": {
 				"url": "https://sporcle.com/games/g/world",
-				"thumb": "images/countries-world.png",
+				"thumb": "images/games/countries-world.png",
 				"label": "/197",
 				"max": 197
 			}
@@ -101,7 +101,7 @@
 		{
 			"Countries of Europe": {
 				"url": "https://sporcle.com/games/g/europe",
-				"thumb": "images/countries-europe.png",
+				"thumb": "images/games/countries-europe.png",
 				"label": "/47",
 				"max": 47
 			}
@@ -109,7 +109,7 @@
 		{
 			"Capitals of Europe": {
 				"url": "https://sporcle.com/games/g/europecapitals",
-				"thumb": "images/capitals-europe.png",
+				"thumb": "images/games/capitals-europe.png",
 				"label": "/47",
 				"max": 47
 			}
@@ -117,7 +117,7 @@
 		{
 			"Countries of Asia": {
 				"url": "https://sporcle.com/games/g/asia",
-				"thumb": "images/countries-asia.png",
+				"thumb": "images/games/countries-asia.png",
 				"label": "/49",
 				"max": 49
 			}
@@ -125,7 +125,7 @@
 		{
 			"Capitals of Asia": {
 				"url": "https://sporcle.com/games/g/asiacapitals",
-				"thumb": "images/capitals-asia.png",
+				"thumb": "images/games/capitals-asia.png",
 				"label": "/49",
 				"max": 49
 			}
@@ -133,7 +133,7 @@
 		{
 			"Countries of South America": {
 				"url": "https://sporcle.com/games/g/southamerica",
-				"thumb": "images/countries-south-america.png",
+				"thumb": "images/games/countries-south-america.png",
 				"label": "/12",
 				"max": 12
 			}
@@ -141,7 +141,7 @@
 		{
 			"Countries of Africa": {
 				"url": "https://sporcle.com/games/g/africa",
-				"thumb": "images/countries-africa.png",
+				"thumb": "images/games/countries-africa.png",
 				"label": "/54",
 				"max": 54
 			}
@@ -149,7 +149,7 @@
 		{
 			"Countries of North America": {
 				"url": "https://sporcle.com/games/g/northamerica",
-				"thumb": "images/countries-north-america.png",
+				"thumb": "images/games/countries-north-america.png",
 				"label": "/23",
 				"max": 23
 			}
@@ -157,7 +157,7 @@
 		{
 			"Countries of Oceania": {
 				"url": "https://sporcle.com/games/g/oceania",
-				"thumb": "images/countries-oceania.png",
+				"thumb": "images/games/countries-oceania.png",
 				"label": "/14",
 				"max": 14
 			}
@@ -167,7 +167,7 @@
 		{
 			"Flags of the World": {
 				"url": "https://sporcle.com/games/g/worldflags",
-				"thumb": "images/flags-world.png",
+				"thumb": "images/games/flags-world.png",
 				"label": "/197",
 				"max": 197
 			}
@@ -175,7 +175,7 @@
 		{
 			"Flags of Europe": {
 				"url": "https://sporcle.com/games/g/europeflags",
-				"thumb": "images/flags-europe.png",
+				"thumb": "images/games/flags-europe.png",
 				"label": "/47",
 				"max": 47
 			}
@@ -183,7 +183,7 @@
 		{
 			"Flags of Asia": {
 				"url": "https://sporcle.com/games/g/asiaflags",
-				"thumb": "images/flags-asia.png",
+				"thumb": "images/games/flags-asia.png",
 				"label": "/49",
 				"max": 49
 			}
@@ -191,7 +191,7 @@
 		{
 			"Flags of Africa": {
 				"url": "https://sporcle.com/games/g/africaflags",
-				"thumb": "images/flags-africa.png",
+				"thumb": "images/games/flags-africa.png",
 				"label": "/54",
 				"max": 54
 			}
@@ -199,7 +199,7 @@
 		{
 			"Flags of North America": {
 				"url": "https://sporcle.com/games/g/northamericaflags",
-				"thumb": "images/flags-north-america.png",
+				"thumb": "images/games/flags-north-america.png",
 				"label": "/23",
 				"max": 23
 			}
@@ -207,7 +207,7 @@
 		{
 			"Flags of South America": {
 				"url": "https://sporcle.com/games/g/southamericaflags",
-				"thumb": "images/flags-south-america.png",
+				"thumb": "images/games/flags-south-america.png",
 				"label": "/12",
 				"max": 12
 			}
@@ -215,7 +215,7 @@
 		{
 			"Flags of Oceania": {
 				"url": "https://sporcle.com/games/g/oceaniaflags",
-				"thumb": "images/flags-oceania.png",
+				"thumb": "images/games/flags-oceania.png",
 				"label": "/14",
 				"max": 14
 			}

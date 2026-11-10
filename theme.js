@@ -1,4 +1,7 @@
-// Apply the saved preference before the stylesheet paints the page.
+/**
+ * This file applies dark/white theme and the visualization of the page + stores ICON links for them to be applied everywhere on change
+ * Both get saved to cookies so the user doesn't have to constantly change
+ */
 (() => {
     const storageKey = "game-theme";
     let theme = "dark";
@@ -25,3 +28,25 @@
         });
     });
 })();
+
+/**
+ * Strips the url and provides the correct link
+ */
+var SITE_ICONS = (() => {
+    const script = document.currentScript;
+    const base = script ? new URL('.', script.src).href : location.href;
+    return {
+        favicon: base + 'images/icon.png',
+        friends: base + 'images/friends-icon.png',
+        streak:  base + 'images/streak-icon.png',
+    };
+})();
+
+// inject the favicon if the page doesn't already declare one
+if (!document.querySelector('link[rel~="icon"]')) {
+    const link = document.createElement('link');
+    link.rel  = 'icon';
+    link.type = 'image/png';
+    link.href = SITE_ICONS.favicon;
+    document.head.appendChild(link);
+}

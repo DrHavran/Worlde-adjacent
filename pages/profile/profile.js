@@ -2,7 +2,7 @@ import {
     getSession, getUser, getProfile,
     updateProfile, updatePassword, searchUsers,
     getFollowing, fetchFollowedProfiles, follow, unfollow, logout,
-} from '../Data/integration.js';
+} from '../../Data/integration.js';
 
 let currentUser = null;
 let following = new Set();
