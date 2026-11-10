@@ -1,36 +1,9 @@
-/**
- * This file applies dark/white theme and the visualization of the page + stores ICON links for them to be applied everywhere on change
- * Both get saved to cookies so the user doesn't have to constantly change
- */
-(() => {
-    const storageKey = "game-theme";
-    let theme = "dark";
-    try {
-        if (localStorage.getItem(storageKey) === "light") theme = "light";
-    } catch { /* The switch still works when browser storage is unavailable. */ }
-
-    document.documentElement.dataset.theme = theme;
-
-    document.addEventListener("DOMContentLoaded", () => {
-        const toggle = document.querySelector("#theme-toggle");
-        if (!toggle) return;
-        function updateButton() {
-            const light = document.documentElement.dataset.theme === "light";
-            toggle.textContent = light ? "Dark mode" : "White mode";
-            toggle.title = light ? "Switch to dark mode" : "Switch to white mode";
-        }
-        updateButton();
-        toggle.addEventListener("click", () => {
-            theme = document.documentElement.dataset.theme === "light" ? "dark" : "light";
-            document.documentElement.dataset.theme = theme;
-            try { localStorage.setItem(storageKey, theme); } catch { /* Optional persistence. */ }
-            updateButton();
-        });
-    });
-})();
+// ---------- site icons ----------
 
 /**
- * Strips the url and provides the correct link
+ * Central icon URLs, resolved relative to theme.js's own location
+ * so they work from any page depth (root, /pages/*, etc).
+ * Consumed as `SITE_ICONS.favicon` / `.friends` / `.streak` / `.placeholderUser`.
  */
 var SITE_ICONS = (() => {
     const script = document.currentScript;
@@ -43,7 +16,7 @@ var SITE_ICONS = (() => {
     };
 })();
 
-// inject the favicon if the page doesn't already declare one
+// Auto-inject the favicon unless the page already declared one
 if (!document.querySelector('link[rel~="icon"]')) {
     const link = document.createElement('link');
     link.rel  = 'icon';
@@ -51,3 +24,100 @@ if (!document.querySelector('link[rel~="icon"]')) {
     link.href = SITE_ICONS.favicon;
     document.head.appendChild(link);
 }
+
+// ---------- available designs ----------
+
+/**
+ * All designs the home page knows about.
+ * Adding a new design requires: a CSS file under design/, a matching
+ * <link> in index.html, and an entry here. If it supports keyboard
+ * navigation, add it to KEYBOARD_DESIGNS too.
+ * Order determines dropdown order.
+ */
+var DESIGNS = [
+    { id: 'classic', name: 'Classic' },
+    { id: 'modern',  name: 'Modern'  },
+];
+
+/**
+ * Designs whose keyboard shortcuts (arrows, /, Y, B) should be active
+ * on the home page. Designs not in this list ignore shortcuts.
+ */
+var KEYBOARD_DESIGNS = ['classic', 'modern'];
+
+// ---------- apply theme + design before paint ----------
+
+/**
+ * Applies the saved theme/design to <html> synchronously so the first
+ * paint already matches. Runs in <head> — no flash of unstyled content.
+ */
+(() => {
+    const THEME_KEY  = 'game-theme';
+    const DESIGN_KEY = 'game-design';
+
+    let theme = 'light';
+    try {
+        const saved = localStorage.getItem(THEME_KEY);
+        if (saved === 'dark' || saved === 'light') theme = saved;
+    } catch {}
+    document.documentElement.dataset.theme = theme;
+
+    let design = 'classic';
+    try {
+        const saved = localStorage.getItem(DESIGN_KEY);
+        if (saved && DESIGNS.some(d => d.id === saved)) design = saved;
+    } catch {}
+    document.documentElement.dataset.design = design;
+})();
+
+// ---------- wire up controls after DOM ready ----------
+
+/**
+ * Wires up the theme toggle and design dropdown.
+ * Both write to localStorage so the choice persists across visits.
+ * Runs on DOMContentLoaded because the controls don't exist yet when
+ * this script first executes from <head>.
+ */
+document.addEventListener('DOMContentLoaded', () => {
+    const themeToggle = document.querySelector('#theme-toggle');
+    if (themeToggle) {
+        function updateThemeButton() {
+            const light = document.documentElement.dataset.theme === 'light';
+            themeToggle.textContent = light ? 'Dark mode' : 'White mode';
+            themeToggle.title = light ? 'Switch to dark mode' : 'Switch to white mode';
+        }
+        updateThemeButton();
+        themeToggle.addEventListener('click', () => {
+            const next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
+            document.documentElement.dataset.theme = next;
+            try { localStorage.setItem('game-theme', next); } catch {}
+            updateThemeButton();
+        });
+    }
+
+    const designSelect = document.querySelector('#design-select');
+    if (designSelect) {
+        // Populate the dropdown from DESIGNS (single source of truth)
+        for (const d of DESIGNS) {
+            const opt = document.createElement('option');
+            opt.value = d.id;
+            opt.textContent = d.name;
+            designSelect.append(opt);
+        }
+        designSelect.value = document.documentElement.dataset.design;
+
+        designSelect.addEventListener('change', () => {
+            const next = designSelect.value;
+            document.documentElement.dataset.design = next;
+            try { localStorage.setItem('game-design', next); } catch {}
+            document.dispatchEvent(new CustomEvent('designchange'));
+            designSelect.blur();
+        });
+
+        // Escape closes the dropdown → return focus to the page
+        // so keyboard shortcuts work immediately.
+        designSelect.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') designSelect.blur();
+        });
+    }
+});
