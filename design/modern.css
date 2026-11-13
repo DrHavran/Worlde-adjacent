@@ -2,10 +2,10 @@
 :root[data-design="modern"] {
     --ink:#f5f5f7;
     --muted:#a0a2ad;
-    --modern-page:#000000;
-    --modern-surface:#000000;
+    --modern-page:#101116;
+    --modern-surface:#1a1c23;
     --modern-accent:#b9c7ff;
-    --cover-background:#000000;
+    --cover-background:#f4f5f3;
     background:var(--modern-page);
 }
 :root[data-design="modern"][data-theme="light"] {
@@ -14,8 +14,12 @@
     --modern-page:#fafafa;
     --modern-surface:#eeeff2;
     --modern-accent:#3555c7;
-    --cover-background:#f4f5f3;
     color-scheme:light;
+}
+:root[data-design="modern"][data-theme="oled"] {
+    --modern-page:#000000;
+    --modern-surface:#000000;
+    --cover-background:#000000;
 }
 :root[data-design="modern"] body { background:var(--modern-page); color:var(--ink); }
 :root[data-design="modern"] .tile-bottom { display:none; }

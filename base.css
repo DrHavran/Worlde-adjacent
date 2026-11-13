@@ -1,20 +1,20 @@
 /* ============================================================
    BASE — shared by every page
-   Palette (OLED dark + light), font, body defaults, page header.
+   Palette (dark + light + OLED), font, body defaults, page header.
    Page-specific styles live in the CSS file next to each page.
    ============================================================ */
 
    @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 
-   /* ---------- OLED dark: true black surfaces and neutral borders ---------- */
+   /* ---------- dark (default) ---------- */
    
    :root {
        color-scheme: dark;
-       --page:          #000000;
+       --page:          #12121c;
        --text:          #e5e5f0;
-       --card:          #000000;
-       --border:        #343434;
-       --thumb:         #080808;
+       --card:          #1e1e2e;
+       --border:        #33334d;
+       --thumb:         #2a2a3e;
        --subtle:        rgba(255, 255, 255, .06);
        --badge-border:  rgba(255, 255, 255, .1);
        --check-border:  rgba(255, 255, 255, .35);
@@ -22,7 +22,7 @@
        --accent-hover:  #16a34a;
        --error:         #ef6b6b;
        --info:          #60a5fa;
-       --shadow:        transparent;
+       --shadow:        rgba(0, 0, 0, .45);
        --muted:         #9a9a9a;
        --input-bg:      var(--page);
    }
@@ -48,6 +48,17 @@
        --input-bg:      var(--page);
    }
    
+   /* ---------- OLED: true black backgrounds and neutral borders ---------- */
+
+   :root[data-theme="oled"] {
+       color-scheme: dark;
+       --page:          #000000;
+       --card:          #000000;
+       --thumb:         #080808;
+       --border:        #343434;
+       --shadow:        transparent;
+   }
+
    /* ---------- body ---------- */
    
    html, body {
@@ -91,13 +102,7 @@
    
    /* ---------- header controls (theme + log-in) ---------- */
 
-   .theme-choice {
-       display: flex;
-       align-items: center;
-       gap: .5rem;
-   }
-   
-   #theme-select,
+   #theme-toggle,
    #login-btn {
        min-height: 44px;
        padding: .6rem 1rem;
@@ -109,12 +114,12 @@
        cursor: pointer;
    }
    
-   #theme-select:hover,
+   #theme-toggle:hover,
    #login-btn:hover,
-   :root[data-theme="light"] #theme-select,
+   :root[data-theme="light"] #theme-toggle,
    :root[data-theme="light"] #login-btn { border-color: var(--accent); }
    
-   #theme-select:focus-visible,
+   #theme-toggle:focus-visible,
    #login-btn:focus-visible {
        outline: 2px solid var(--accent);
        outline-offset: -3px;

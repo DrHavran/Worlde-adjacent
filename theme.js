@@ -48,7 +48,8 @@ var KEYBOARD_DESIGNS = ['classic', 'modern'];
 // Theme choices are shared by the home page and profile settings.
 var THEMES = [
     { id: 'light', name: 'White', color: '#f6f7fb' },
-    { id: 'dark', name: 'OLED dark', color: '#000000' },
+    { id: 'dark', name: 'Dark', color: '#12121c' },
+    { id: 'oled', name: 'OLED', color: '#000000' },
 ];
 
 function applyTheme(theme) {
@@ -75,9 +76,7 @@ function applyTheme(theme) {
     let theme = THEMES[0];
     try {
         const saved = localStorage.getItem(THEME_KEY);
-        // Preserve preferences saved before OLED became the regular dark theme.
-        const id = saved === 'oled' ? 'dark' : saved;
-        theme = THEMES.find(t => t.id === id) || theme;
+        theme = THEMES.find(t => t.id === saved) || theme;
     } catch {}
     applyTheme(theme);
 
@@ -92,29 +91,31 @@ function applyTheme(theme) {
 // ---------- wire up controls after DOM ready ----------
 
 /**
- * Wires up the theme and design dropdowns.
+ * Wires up the theme button and design dropdown.
  * Both write to localStorage so the choice persists across visits.
  * Runs on DOMContentLoaded because the controls don't exist yet when
  * this script first executes from <head>.
  */
 document.addEventListener('DOMContentLoaded', () => {
-    const themeSelect = document.querySelector('#theme-select');
-    if (themeSelect) {
-        for (const theme of THEMES) {
-            const option = document.createElement('option');
-            option.value = theme.id;
-            option.textContent = theme.name;
-            themeSelect.appendChild(option);
+    const themeToggle = document.querySelector('#theme-toggle');
+    if (themeToggle) {
+        function nextTheme() {
+            const current = THEMES.findIndex(t => t.id === document.documentElement.dataset.theme);
+            return THEMES[(current + 1) % THEMES.length];
         }
-        themeSelect.value = document.documentElement.dataset.theme;
-        themeSelect.addEventListener('change', () => {
-            const theme = THEMES.find(t => t.id === themeSelect.value);
-            if (!theme) return;
+
+        function updateThemeButton() {
+            const next = nextTheme();
+            themeToggle.textContent = `${next.name} mode`;
+            themeToggle.title = `Switch to ${next.name} mode`;
+        }
+
+        updateThemeButton();
+        themeToggle.addEventListener('click', () => {
+            const theme = nextTheme();
             applyTheme(theme);
             try { localStorage.setItem('game-theme', theme.id); } catch {}
-        });
-        themeSelect.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape') themeSelect.blur();
+            updateThemeButton();
         });
     }
 
