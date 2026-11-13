@@ -5,6 +5,7 @@
     --modern-page:#101116;
     --modern-surface:#1a1c23;
     --modern-accent:#b9c7ff;
+    --cover-background:#f4f5f3;
     background:var(--modern-page);
 }
 :root[data-design="modern"][data-theme="light"] {
@@ -14,6 +15,11 @@
     --modern-surface:#eeeff2;
     --modern-accent:#3555c7;
     color-scheme:light;
+}
+:root[data-design="modern"][data-theme="oled"] {
+    --modern-page:#000000;
+    --modern-surface:#000000;
+    --cover-background:#000000;
 }
 :root[data-design="modern"] body { background:var(--modern-page); color:var(--ink); }
 :root[data-design="modern"] .tile-bottom { display:none; }
@@ -33,7 +39,7 @@
 :root[data-design="modern"] .game-tile.selected { border:0; box-shadow:none; outline-color:var(--ink); }
 :root[data-design="modern"] .game-tile:hover { outline-color:var(--muted); }
 :root[data-design="modern"] .game-tile:focus-visible { outline-color:var(--modern-accent); }
-:root[data-design="modern"] .tile-cover { inset:0; width:100%; height:100%; object-fit:contain; border-radius:0; background:#f4f5f3; box-shadow:none; }
+:root[data-design="modern"] .tile-cover { inset:0; width:100%; height:100%; object-fit:contain; border-radius:0; background:var(--cover-background); box-shadow:none; }
 :root[data-design="modern"] .tile-monogram { top:50%; color:var(--ink); font-size:28px; text-shadow:none; }
 :root[data-design="modern"] .tile-done { display:block; inset:auto 6px 6px auto; padding:3px 5px; border-radius:4px; font-size:9px; font-weight:500; line-height:1.4; background:var(--modern-page); color:var(--muted); }
 :root[data-design="modern"] .completed .tile-done { color:var(--ink); }

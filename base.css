@@ -1,6 +1,6 @@
 /* ============================================================
    BASE — shared by every page
-   Palette (dark + light), font, body defaults, page header.
+   Palette (dark + light + OLED), font, body defaults, page header.
    Page-specific styles live in the CSS file next to each page.
    ============================================================ */
 
@@ -48,6 +48,17 @@
        --input-bg:      var(--page);
    }
    
+   /* ---------- OLED: true black backgrounds and neutral borders ---------- */
+
+   :root[data-theme="oled"] {
+       color-scheme: dark;
+       --page:          #000000;
+       --card:          #000000;
+       --thumb:         #080808;
+       --border:        #343434;
+       --shadow:        transparent;
+   }
+
    /* ---------- body ---------- */
    
    html, body {
@@ -89,9 +100,15 @@
        gap: .75rem;
    }
    
-   /* ---------- header buttons (theme + log-in) ---------- */
+   /* ---------- header controls (theme + log-in) ---------- */
+
+   .theme-choice {
+       display: flex;
+       align-items: center;
+       gap: .5rem;
+   }
    
-   #theme-toggle,
+   #theme-select,
    #login-btn {
        min-height: 44px;
        padding: .6rem 1rem;
@@ -103,12 +120,12 @@
        cursor: pointer;
    }
    
-   #theme-toggle:hover,
+   #theme-select:hover,
    #login-btn:hover,
-   :root[data-theme="light"] #theme-toggle,
+   :root[data-theme="light"] #theme-select,
    :root[data-theme="light"] #login-btn { border-color: var(--accent); }
    
-   #theme-toggle:focus-visible,
+   #theme-select:focus-visible,
    #login-btn:focus-visible {
        outline: 2px solid var(--accent);
        outline-offset: -3px;
