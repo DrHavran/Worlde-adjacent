@@ -1,19 +1,11 @@
 /* Original card layout, scoped to the selected design. */
 :root[data-design="classic"] {
     --ink:var(--text);
-    color-scheme: dark; --page: #12121c; --text: #e5e5f0; --card: #1e1e2e; --border: #33334d; --thumb: #2a2a3e; --subtle: rgba(255, 255, 255, .06); --badge-border: rgba(255, 255, 255, .1); --check-border: rgba(255, 255, 255, .35); --accent: #22c55e; --shadow: rgba(0, 0, 0, .45);
+    color-scheme: dark; --page: #000000; --text: #e5e5f0; --card: #000000; --border: #343434; --thumb: #080808; --subtle: rgba(255, 255, 255, .06); --badge-border: rgba(255, 255, 255, .1); --check-border: rgba(255, 255, 255, .35); --accent: #22c55e; --shadow: transparent;
 }
 
 :root[data-design="classic"][data-theme="light"] {
     color-scheme: light; --page: #f6f7fb; --text: #202334; --card: #ffffff; --border: #d4d8e3; --thumb: #e9ecf3; --subtle: rgba(32, 35, 52, .04); --badge-border: rgba(32, 35, 52, .16); --check-border: #72798c; --accent: #15803d; --shadow: rgba(32, 35, 52, .14);
-}
-
-:root[data-design="classic"][data-theme="oled"] {
-    --page: #000000;
-    --card: #000000;
-    --thumb: #080808;
-    --border: #343434;
-    --shadow: transparent;
 }
 
 :root[data-design="classic"],

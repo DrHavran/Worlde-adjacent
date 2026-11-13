@@ -1,20 +1,20 @@
 /* ============================================================
    BASE — shared by every page
-   Palette (dark + light + OLED), font, body defaults, page header.
+   Palette (OLED dark + light), font, body defaults, page header.
    Page-specific styles live in the CSS file next to each page.
    ============================================================ */
 
    @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 
-   /* ---------- dark (default) ---------- */
+   /* ---------- OLED dark: true black surfaces and neutral borders ---------- */
    
    :root {
        color-scheme: dark;
-       --page:          #12121c;
+       --page:          #000000;
        --text:          #e5e5f0;
-       --card:          #1e1e2e;
-       --border:        #33334d;
-       --thumb:         #2a2a3e;
+       --card:          #000000;
+       --border:        #343434;
+       --thumb:         #080808;
        --subtle:        rgba(255, 255, 255, .06);
        --badge-border:  rgba(255, 255, 255, .1);
        --check-border:  rgba(255, 255, 255, .35);
@@ -22,7 +22,7 @@
        --accent-hover:  #16a34a;
        --error:         #ef6b6b;
        --info:          #60a5fa;
-       --shadow:        rgba(0, 0, 0, .45);
+       --shadow:        transparent;
        --muted:         #9a9a9a;
        --input-bg:      var(--page);
    }
@@ -48,17 +48,6 @@
        --input-bg:      var(--page);
    }
    
-   /* ---------- OLED: true black backgrounds and neutral borders ---------- */
-
-   :root[data-theme="oled"] {
-       color-scheme: dark;
-       --page:          #000000;
-       --card:          #000000;
-       --thumb:         #080808;
-       --border:        #343434;
-       --shadow:        transparent;
-   }
-
    /* ---------- body ---------- */
    
    html, body {

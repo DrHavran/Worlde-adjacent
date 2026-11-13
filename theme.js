@@ -48,8 +48,7 @@ var KEYBOARD_DESIGNS = ['classic', 'modern'];
 // Theme choices are shared by the home page and profile settings.
 var THEMES = [
     { id: 'light', name: 'White', color: '#f6f7fb' },
-    { id: 'dark', name: 'Dark', color: '#12121c' },
-    { id: 'oled', name: 'OLED dark', color: '#000000' },
+    { id: 'dark', name: 'OLED dark', color: '#000000' },
 ];
 
 function applyTheme(theme) {
@@ -76,7 +75,9 @@ function applyTheme(theme) {
     let theme = THEMES[0];
     try {
         const saved = localStorage.getItem(THEME_KEY);
-        theme = THEMES.find(t => t.id === saved) || theme;
+        // Preserve preferences saved before OLED became the regular dark theme.
+        const id = saved === 'oled' ? 'dark' : saved;
+        theme = THEMES.find(t => t.id === id) || theme;
     } catch {}
     applyTheme(theme);
 
