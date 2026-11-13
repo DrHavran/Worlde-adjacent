@@ -45,6 +45,24 @@ var DESIGNS = [
  */
 var KEYBOARD_DESIGNS = ['classic', 'modern'];
 
+// Theme choices are shared by the home page and profile settings.
+var THEMES = [
+    { id: 'light', name: 'White', color: '#f6f7fb' },
+    { id: 'dark', name: 'Dark', color: '#12121c' },
+    { id: 'oled', name: 'OLED', color: '#000000' },
+];
+
+function applyTheme(theme) {
+    document.documentElement.dataset.theme = theme.id;
+    let color = document.querySelector('meta[name="theme-color"]');
+    if (!color) {
+        color = document.createElement('meta');
+        color.name = 'theme-color';
+        document.head.appendChild(color);
+    }
+    color.content = theme.color;
+}
+
 // ---------- apply theme + design before paint ----------
 
 /**
@@ -55,12 +73,12 @@ var KEYBOARD_DESIGNS = ['classic', 'modern'];
     const THEME_KEY  = 'game-theme';
     const DESIGN_KEY = 'game-design';
 
-    let theme = 'light';
+    let theme = THEMES[0];
     try {
         const saved = localStorage.getItem(THEME_KEY);
-        if (saved === 'dark' || saved === 'light') theme = saved;
+        theme = THEMES.find(t => t.id === saved) || theme;
     } catch {}
-    document.documentElement.dataset.theme = theme;
+    applyTheme(theme);
 
     let design = 'classic';
     try {
@@ -73,7 +91,7 @@ var KEYBOARD_DESIGNS = ['classic', 'modern'];
 // ---------- wire up controls after DOM ready ----------
 
 /**
- * Wires up the theme toggle and design dropdown.
+ * Wires up the theme button and design dropdown.
  * Both write to localStorage so the choice persists across visits.
  * Runs on DOMContentLoaded because the controls don't exist yet when
  * this script first executes from <head>.
@@ -81,16 +99,22 @@ var KEYBOARD_DESIGNS = ['classic', 'modern'];
 document.addEventListener('DOMContentLoaded', () => {
     const themeToggle = document.querySelector('#theme-toggle');
     if (themeToggle) {
-        function updateThemeButton() {
-            const light = document.documentElement.dataset.theme === 'light';
-            themeToggle.textContent = light ? 'Dark mode' : 'White mode';
-            themeToggle.title = light ? 'Switch to dark mode' : 'Switch to white mode';
+        function nextTheme() {
+            const current = THEMES.findIndex(t => t.id === document.documentElement.dataset.theme);
+            return THEMES[(current + 1) % THEMES.length];
         }
+
+        function updateThemeButton() {
+            const next = nextTheme();
+            themeToggle.textContent = `${next.name} mode`;
+            themeToggle.title = `Switch to ${next.name} mode`;
+        }
+
         updateThemeButton();
         themeToggle.addEventListener('click', () => {
-            const next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
-            document.documentElement.dataset.theme = next;
-            try { localStorage.setItem('game-theme', next); } catch {}
+            const theme = nextTheme();
+            applyTheme(theme);
+            try { localStorage.setItem('game-theme', theme.id); } catch {}
             updateThemeButton();
         });
     }

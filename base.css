@@ -1,6 +1,6 @@
 /* ============================================================
    BASE — shared by every page
-   Palette (dark + light), font, body defaults, page header.
+   Palette (dark + light + OLED), font, body defaults, page header.
    Page-specific styles live in the CSS file next to each page.
    ============================================================ */
 
@@ -48,6 +48,17 @@
        --input-bg:      var(--page);
    }
    
+   /* ---------- OLED: true black backgrounds and neutral borders ---------- */
+
+   :root[data-theme="oled"] {
+       color-scheme: dark;
+       --page:          #000000;
+       --card:          #000000;
+       --thumb:         #080808;
+       --border:        #343434;
+       --shadow:        transparent;
+   }
+
    /* ---------- body ---------- */
    
    html, body {
@@ -89,8 +100,8 @@
        gap: .75rem;
    }
    
-   /* ---------- header buttons (theme + log-in) ---------- */
-   
+   /* ---------- header controls (theme + log-in) ---------- */
+
    #theme-toggle,
    #login-btn {
        min-height: 44px;
