@@ -34,10 +34,10 @@
 :root[data-design="modern"] .library-heading { margin:28px 0 8px; font-size:9px; color:var(--muted); letter-spacing:1.5px; }
 :root[data-design="modern"] .stage { height:150px; padding:14px 5px 22px; overflow-x:auto; overflow-y:hidden; perspective:none; scrollbar-width:thin; scrollbar-color:var(--line) transparent; }
 :root[data-design="modern"] .tiles { height:108px; display:flex; align-items:center; gap:18px; width:max-content; transform-style:flat; }
-:root[data-design="modern"] .game-tile { position:relative; flex:0 0 100px; width:100px; height:100px; left:auto; top:auto; background:var(--modern-surface); border:0; border-radius:16px; box-shadow:none; will-change:auto; transition:outline-color .2s ease, background-color .2s ease; outline:2px solid transparent; outline-offset:4px; transform-origin:center; overflow:hidden; }
+:root[data-design="modern"] .game-tile { position:relative; flex:0 0 100px; width:100px; height:100px; left:auto; top:auto; background:var(--modern-surface); border:0; border-radius:16px; box-shadow:none; will-change:auto; transition:outline-color .2s ease, background-color .2s ease; outline:2px solid var(--line); outline-offset:4px; transform-origin:center; overflow:hidden; }
 :root[data-design="modern"] .game-tile::after { background:rgba(0,0,0,.5); }
 :root[data-design="modern"] .game-tile.selected { border:0; box-shadow:none; outline-color:var(--ink); }
-:root[data-design="modern"] .game-tile:hover { outline-color:var(--muted); }
+:root[data-design="modern"] .game-tile:not(.selected):hover { outline-color:var(--muted); }
 :root[data-design="modern"] .game-tile:focus-visible { outline-color:var(--modern-accent); }
 :root[data-design="modern"] .tile-cover { inset:0; width:100%; height:100%; object-fit:contain; border-radius:0; background:var(--cover-background); box-shadow:none; }
 :root[data-design="modern"] .tile-monogram { top:50%; color:var(--ink); font-size:28px; text-shadow:none; }
