@@ -16,6 +16,9 @@
     --modern-accent:#3555c7;
     color-scheme:light;
 }
+:root[data-design="modern"][data-theme="dark"] {
+    --cover-background:transparent;
+}
 :root[data-design="modern"][data-theme="oled"] {
     --modern-page:#000000;
     --modern-surface:#000000;
