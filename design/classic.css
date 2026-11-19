@@ -1,7 +1,7 @@
 /* Original card layout, scoped to the selected design. */
 :root[data-design="classic"] {
     --ink:var(--text);
-    color-scheme: dark; --page: #12121c; --text: #e5e5f0; --card: #1e1e2e; --border: #33334d; --thumb: #2a2a3e; --subtle: rgba(255, 255, 255, .06); --badge-border: rgba(255, 255, 255, .1); --check-border: rgba(255, 255, 255, .35); --accent: #22c55e; --shadow: rgba(0, 0, 0, .45);
+    color-scheme: dark; --page: #000000; --text: #e5e5f0; --card: #000000; --border: #33334d; --thumb: #2a2a3e; --subtle: rgba(255, 255, 255, .06); --badge-border: rgba(255, 255, 255, .1); --check-border: rgba(255, 255, 255, .35); --accent: #22c55e; --shadow: rgba(0, 0, 0, .45);
 }
 
 :root[data-design="classic"][data-theme="light"] {

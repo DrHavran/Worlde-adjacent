@@ -2,8 +2,8 @@
 :root[data-design="modern"] {
     --ink:#f5f5f7;
     --muted:#a0a2ad;
-    --modern-page:#101116;
-    --modern-surface:#1a1c23;
+    --modern-page:#000000;
+    --modern-surface:#000000;
     --modern-accent:#b9c7ff;
     background:var(--modern-page);
 }
