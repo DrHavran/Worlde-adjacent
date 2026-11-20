@@ -48,6 +48,14 @@
 				"max": 700
 			}
 		},
+    {
+			"Krillion Geography": {
+				"url": "https://krillion.to/en/geography",
+				"thumb": "https://krillion.to/images/krill/krill-geography.png",
+				"label": " points",
+				"max": 700
+			}
+		},
 		{
 			"Farflung": {
 				"url": "https://farflunggame.com",
